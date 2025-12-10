@@ -1,0 +1,135 @@
+<div class="bg-white p-6">
+  <section class="section">
+
+    <div class="flex flex-wrap items-start justify-between mb-6 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold mb-1">INBOUND PRODUK</h1>
+        <nav class="text-gray-500 text-sm flex items-center flex-wrap gap-1">
+          <span>Home</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          <span>Produk</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          <span class="font-medium">Stok Masuk</span>
+        </nav>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="saveInbound()"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan Stok Masuk</button>
+        <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
+      </div>
+    </div>
+
+    <div class="flex gap-2 border-b mb-6 overflow-x-auto">
+      <button onclick="loadModuleContent('product_form', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        📦 Informasi Produk
+      </button>
+
+      <button onclick="loadModuleContent('product_inbound', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition border-b-2 border-blue-600 text-blue-600 focus:outline-none whitespace-nowrap">
+        📥 Inbound (Masuk)
+      </button>
+
+      <button onclick="loadModuleContent('product_outbound', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        📤 Outbound (Keluar)
+      </button>
+
+      <button onclick="loadModuleContent('product_stok', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        🔄 Mutasi Stok
+      </button>
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+
+      <div>
+        <h2 class="text-blue-600 text-lg font-semibold mb-4">Data Transaksi</h2>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Tanggal <span class="text-red-500">*</span></label>
+          <input type="date" id="inboundDate" class="flex-1 border rounded px-3 py-2" />
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">No. Invoice/Ref</label>
+          <input type="text" id="inboundInv" placeholder="INV-001" class="flex-1 border rounded px-3 py-2" />
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Warehouse <span class="text-red-500">*</span></label>
+          <select id="inboundWarehouse" class="flex-1 border rounded px-3 py-2">
+            <option value="">Pilih Gudang...</option>
+          </select>
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Notes</label>
+          <textarea id="inboundNotes" rows="2" class="flex-1 border rounded px-3 py-2"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-blue-600 text-lg font-semibold mb-4">Detail Barang</h2>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Pilih Produk <span class="text-red-500">*</span></label>
+          <select id="inboundProduct" class="flex-1 border rounded px-3 py-2 bg-gray-50">
+            <option value="">Loading Product...</option>
+          </select>
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Qty Masuk <span class="text-red-500">*</span></label>
+          <input type="number" id="inboundQty" class="flex-1 border rounded px-3 py-2 font-bold text-green-600"
+            placeholder="0" />
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Purchase Price</label>
+          <div class="flex flex-1">
+            <span class="bg-gray-100 border border-r-0 px-3 rounded-l text-sm flex items-center">Rp</span>
+            <input type="text" id="inboundPrice" class="w-full border rounded-r px-3 py-2" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Expired Date</label>
+          <input type="date" id="inboundExpired" class="flex-1 border rounded px-3 py-2" />
+        </div>
+
+        <div class="mb-4 flex items-center">
+          <label class="w-40 font-medium">Aging (Hari)</label>
+          <input type="text" id="inboundAging" readonly
+            class="flex-1 border bg-gray-100 rounded px-3 py-2 text-gray-500" placeholder="Auto hitung..." />
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-gray-50 px-4 py-2 border-b font-semibold text-gray-700">Riwayat Inbound Terakhir</div>
+      <table class="w-full text-sm text-left">
+        <thead class="bg-white text-gray-600 border-b">
+          <tr>
+            <th class="px-4 py-2">Tanggal</th>
+            <th class="px-4 py-2">Invoice</th>
+            <th class="px-4 py-2">Gudang</th>
+            <th class="px-4 py-2 text-right">Qty</th>
+            <th class="px-4 py-2 text-right">Harga Beli</th>
+          </tr>
+        </thead>
+        <tbody id="tableInboundBody">
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+</div>

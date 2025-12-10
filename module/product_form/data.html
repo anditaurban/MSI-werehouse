@@ -19,27 +19,34 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <button onclick="createData()" id="addButton" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan</button>
-        <button onclick="updateData()" id="updateButton" class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">Update</button>
+        <button onclick="createData()" id="addButton"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan</button>
+        <button onclick="updateData()" id="updateButton"
+          class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">Update</button>
         <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
       </div>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="flex gap-2 border-b border-gray-300">
-      <button 
-        class="tab-link active-tab text-sm flex items-center gap-2 py-1 px-3 bg-blue-100 hover:bg-blue-200 rounded-t-md text-blue-600 font-semibold"
-        data-tab="produk"
-        onclick="switchTab('produk')"
-      >
-        📦 <span class="menu-text hidden md:inline">Informasi Produk</span>
+    <div class="flex gap-2 border-b mb-6 overflow-x-auto">
+      <button onclick="loadModuleContent('product_form', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition border-b-2 border-blue-600 text-blue-600 focus:outline-none whitespace-nowrap">
+        📦 Informasi Produk
       </button>
-      <button 
-        class="tab-link text-sm flex items-center gap-2 py-1 px-3 hover:bg-blue-200 rounded-t-md text-gray-600"
-        data-tab="harga"
-        onclick="switchTab('harga')"
-      >
-        💰 <span class="menu-text hidden md:inline">Harga & Kategori</span>
+
+      <button onclick="loadModuleContent('product_inbound', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        📥 Inbound (Masuk)
+      </button>
+
+      <button onclick="loadModuleContent('product_outbound', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        📤 Outbound (Keluar)
+      </button>
+
+      <button onclick="loadModuleContent('product_stok', window.detail_id, window.detail_desc)"
+        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
+        🔄 Mutasi Stok
       </button>
     </div>
 
@@ -49,7 +56,7 @@
       <!-- Tab: Informasi Produk -->
       <div id="tab-produk" class="tab-content">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
+
           <!-- Kolom Kiri -->
           <div>
             <h2 class="text-blue-600 text-lg font-semibold mb-4">Informasi Produk</h2>
@@ -114,7 +121,8 @@
                 <label class="w-40 font-medium">Harga Jual</label>
                 <input type="text" id="formPrice" class="flex-1 border rounded px-3 py-2" />
               </div>
-              <p id="warnPrice" class="text-red-500 text-sm mt-1 hidden">Harga jual harus lebih tinggi dari harga pokok.</p>
+              <p id="warnPrice" class="text-red-500 text-sm mt-1 hidden">Harga jual harus lebih tinggi dari harga pokok.
+              </p>
             </div>
 
             <div class="mb-4">
@@ -122,7 +130,8 @@
                 <label class="w-40 font-medium">Harga Grosir</label>
                 <input type="text" id="formWholesale" class="flex-1 border rounded px-3 py-2" />
               </div>
-              <p id="warnWholesale" class="text-red-500 text-sm mt-1 hidden">Harga grosir harus antara harga pokok dan harga jual.</p>
+              <p id="warnWholesale" class="text-red-500 text-sm mt-1 hidden">Harga grosir harus antara harga pokok dan
+                harga jual.</p>
             </div>
           </div>
         </div>
@@ -133,11 +142,13 @@
         <div id="kategoriSection" class="mt-6">
           <h2 class="text-blue-600 text-lg font-semibold mb-2">Pilih Kategori Bisnis</h2>
 
-          <input type="text" id="searchKategori" placeholder="Cari kategori..." class="border p-2 rounded w-full mb-2" />
+          <input type="text" id="searchKategori" placeholder="Cari kategori..."
+            class="border p-2 rounded w-full mb-2" />
           <div id="selectedCount" class="text-sm text-gray-600 mb-2">0 kategori dipilih</div>
 
           <form id="kategoriForm">
-            <div id="kategoriList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto border p-3 rounded bg-gray-50">
+            <div id="kategoriList"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto border p-3 rounded bg-gray-50">
               <!-- Checkbox akan di-generate di sini -->
             </div>
           </form>
