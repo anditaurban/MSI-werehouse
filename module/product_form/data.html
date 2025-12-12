@@ -20,119 +20,100 @@
 
       <div class="flex flex-wrap gap-2">
         <button onclick="createData()" id="addButton"
-          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan</button>
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">
+          Simpan
+        </button>
+
         <button onclick="updateData()" id="updateButton"
-          class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">Update</button>
-        <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
+          class="hidden bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">
+          Update
+        </button>
+
+        <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">
+          ⬅️ Kembali
+        </button>
       </div>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="flex gap-2 border-b mb-6 overflow-x-auto">
-      <button onclick="loadModuleContent('product_form', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition border-b-2 border-blue-600 text-blue-600 focus:outline-none whitespace-nowrap">
-        📦 Informasi Produk
-      </button>
-
-      <button onclick="loadModuleContent('product_inbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📥 Inbound (Masuk)
-      </button>
-
-      <button onclick="loadModuleContent('product_outbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📤 Outbound (Keluar)
-      </button>
-
-      <button onclick="loadModuleContent('product_stok', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        🔄 Mutasi Stok
-      </button>
     </div>
 
     <!-- Tab Content -->
     <div id="tabContentWrapper" class="pt-4">
 
-      <!-- Tab: Informasi Produk -->
       <div id="tab-produk" class="tab-content">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <!-- Kolom Kiri -->
           <div>
             <h2 class="text-blue-600 text-lg font-semibold mb-4">Informasi Produk</h2>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Nama Produk <span class="text-red-500">*</span></label>
-              <input type="text" id="formProduct" class="flex-1 border rounded px-3 py-2" />
+            <input type="hidden" id="formProductId" value="" />
+            <input type="hidden" id="formCategoryId" value="" />
+            <div class="mb-4 relative">
+              <label class="block font-medium mb-1">Nama Produk <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input type="text" id="formProduct" placeholder="Ketik nama produk..." autocomplete="off"
+                  class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+
+                <div id="productSearchResults"
+                  class="hidden absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto mt-1">
+                </div>
+              </div>
+              <small class="text-gray-500">Ketik untuk mencari dari master produk.</small>
             </div>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">SKU / Barcode <span class="text-red-500">*</span></label>
-              <input type="text" id="formSKU" class="flex-1 border rounded px-3 py-2" />
+            <div class="mb-4">
+              <label class="block font-medium mb-1">SKU / Barcode <span class="text-red-500">*</span></label>
+              <input type="text" id="formSKU" class="w-full border rounded px-3 py-2" />
             </div>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Kategori Barang</label>
-              <select id="formCategory" class="flex-1 border rounded px-3 py-2">
-                <option>Pilih kategori...</option>
+            <div class="mb-4">
+              <label class="block font-medium mb-1">Material / Varian <span class="text-red-500">*</span></label>
+              <select id="formMaterial" class="w-full border rounded px-3 py-2">
+                <option value="">Pilih produk terlebih dahulu...</option>
               </select>
             </div>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Berat</label>
-              <div class="flex flex-1">
-                <input type="text" id="formBerat" class="w-full border rounded-l px-3 py-2" />
-                <span class="bg-gray-100 border border-l-0 px-3 rounded-r text-sm flex items-center">gram</span>
+            <div class="mb-4">
+              <label class="block font-medium mb-1">Berat</label>
+              <div class="flex w-full">
+                <input type="text" id="formBerat" class="w-full border rounded-l px-3 py-2 border-r-0"
+                  placeholder="0" />
+                <span
+                  class="bg-gray-100 border border-l-0 rounded-r px-3 py-2 text-gray-600 font-medium min-w-fit">gram</span>
               </div>
             </div>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Satuan</label>
-              <select id="formUnit" class="flex-1 border rounded px-3 py-2">
-                <option>Pilih unit...</option>
+            <div class="mb-4">
+              <label class="block font-medium mb-1">Satuan <span class="text-red-500">*</span></label>
+              <select id="formUnit" class="w-full border rounded px-3 py-2">
+                <option value="">Loading...</option>
               </select>
             </div>
 
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Batasan Stok <span class="text-red-500">*</span></label>
-              <input type="text" id="formLimit" class="flex-1 border rounded px-3 py-2" />
-            </div>
-
-            <div class="mb-4 flex items-center">
-              <label class="w-40 font-medium">Deskripsi</label>
-              <input type="text" id="formDescription" class="flex-1 border rounded px-3 py-2" />
+            <div class="mb-4">
+              <label class="block font-medium mb-1">Deskripsi</label>
+              <textarea id="formDescription" rows="3" class="w-full border rounded px-3 py-2"></textarea>
             </div>
           </div>
 
-          <!-- Kolom Kanan -->
           <div>
-            <h2 class="text-blue-600 text-lg font-semibold mb-4">Informasi Harga</h2>
+            <h2 class="text-blue-600 text-lg font-semibold mb-4">Stok & Harga</h2>
 
-            <div class="mb-4">
-              <div class="flex items-center">
-                <label class="w-40 font-medium">Harga Pokok</label>
-                <input type="text" id="formCogs" class="flex-1 border rounded px-3 py-2" />
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block font-medium mb-1">Stok Minimum <span class="text-red-500">*</span></label>
+                <input type="text" id="formMinStock" class="w-full border rounded px-3 py-2" placeholder="0" />
               </div>
-              <p id="warningCogs" class="text-red-500 text-sm mt-1 hidden">Harga pokok tidak valid.</p>
+              <div>
+                <label class="block font-medium mb-1">Stok Maksimum <span class="text-red-500">*</span></label>
+                <input type="text" id="formMaxStock" class="w-full border rounded px-3 py-2" placeholder="0" />
+              </div>
             </div>
 
             <div class="mb-4">
-              <div class="flex items-center">
-                <label class="w-40 font-medium">Harga Jual</label>
-                <input type="text" id="formPrice" class="flex-1 border rounded px-3 py-2" />
-              </div>
-              <p id="warnPrice" class="text-red-500 text-sm mt-1 hidden">Harga jual harus lebih tinggi dari harga pokok.
-              </p>
+              <label class="block font-medium mb-1">Harga Jual</label>
+              <input type="text" id="formPrice" class="w-full border rounded px-3 py-2" />
+              <p id="warnPrice" class="text-red-500 text-sm mt-1 hidden"></p>
             </div>
 
-            <div class="mb-4">
-              <div class="flex items-center">
-                <label class="w-40 font-medium">Harga Grosir</label>
-                <input type="text" id="formWholesale" class="flex-1 border rounded px-3 py-2" />
-              </div>
-              <p id="warnWholesale" class="text-red-500 text-sm mt-1 hidden">Harga grosir harus antara harga pokok dan
-                harga jual.</p>
-            </div>
           </div>
         </div>
       </div>

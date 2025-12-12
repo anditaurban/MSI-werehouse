@@ -72,6 +72,7 @@ const endpointList = [
   "employee",
   "product_unit",
   "product_status",
+  "product_werehouse",
   "werehouse",
   "werehouse_pic",
   "finance_account_payment",
@@ -88,7 +89,7 @@ const state = endpointList.reduce((acc, type) => {
 // generate endpoints otomatis
 const endpoints = endpointList.reduce((acc, type) => {
   acc[type] = {
-    table: `${baseUrl}/table/${type}/${owner_id}`,
+    table: `${baseUrl}/table/${type}/${werehouse_id}`,
     list: `${baseUrl}/list/${type}/${owner_id}`,
     detail: `${baseUrl}/detail/${type}`,
     update: `${baseUrl}/update/${type}`,
@@ -99,11 +100,11 @@ const endpoints = endpointList.reduce((acc, type) => {
 }, {});
 
 async function checkApiStatus() {
-  //   console.log('Pengecekan Koneksi...');
+  console.log("Pengecekan Koneksi...");
   const statusEl = document.getElementById("apiIndicator");
   const textEl = document.getElementById("apiIndicatorText");
   try {
-    const res = await fetch(`${baseUrl}/detail/user/${user_id}`, {
+    const res = await fetch(`${baseUrl}/detail/werehouse_pic/${user_id}`, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
       },

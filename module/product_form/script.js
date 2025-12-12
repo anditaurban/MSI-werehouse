@@ -1,434 +1,383 @@
-pagemodule = 'Product';
-colSpanCount = 9;
-setDataType('product');
+pagemodule = "Product";
+setDataType("product_werehouse");
 
-setupPriceInputEvents();
+// --- INISIALISASI ---
+// 1. Setup format angka real-time
 
 if (window.detail_id) {
-  // Mode update
-  loadDetail(detail_id);
-  document.getElementById('addButton').classList.add('hidden');
-}else {
-  // Mode tambah
-  document.getElementById('updateButton').classList.add('hidden');
-  loadDropdown('formCategory', `${baseUrl}/list/product_category/${owner_id}`, 'category_id', 'category');
-  loadDropdown('formUnit', `${baseUrl}/list/product_unit/${owner_id}`, 'unit_id', 'unit');
-  // loadDropdown('formStatus', `${baseUrl}/list/product_status/${owner_id}`, 'status_id', 'status');
-  loadKategoriOptions();
+  document.getElementById("addButton").classList.add("hidden");
+  document.getElementById("updateButton").classList.remove("hidden");
+  document.getElementById("formTitle").innerText = "UPDATE PRODUK GUDANG";
+  loadDropdown(
+    "formUnit",
+    `${baseUrl}/list/product_unit/${owner_id}`,
+    "unit_id",
+    "unit"
+  );
 
+  // Panggil fungsi load detail khusus product_werehouse
+  loadDetailWerehouse(window.detail_id);
+} else {
+  document.getElementById("updateButton").classList.add("hidden");
+  document.getElementById("addButton").classList.remove("hidden");
+  setupPriceInputEvents();
+
+  // 2. Load Dropdown Satuan (Unit) langsung
+  loadDropdown(
+    "formUnit",
+    `${baseUrl}/list/product_unit/${owner_id}`,
+    "unit_id",
+    "unit"
+  );
+
+  // 3. Setup Pencarian Produk
+  setupProductAutocomplete();
 }
 
-async function loadDropdown(selectId, apiUrl, valueField, labelField) {
-  const select = document.getElementById(selectId);
-  select.innerHTML = `<option value="">Loading...</option>`;
-
+async function loadDetailWerehouse(id) {
   try {
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+    // 1. Fetch data detail
+    const response = await fetch(`${baseUrl}/detail/product_werehouse/${id}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${API_TOKEN}` },
     });
 
     const result = await response.json();
-    console.log(`Data untuk ${selectId}:`, result);
-    const listData = result.listData;
+    console.log("Data Detail:", result);
 
-    select.innerHTML = `<option value="">Pilih...</option>`;
+    // Asumsi response structure: { detail: { ...data } }
+    const data = result.detail;
 
-    if (Array.isArray(listData)) {
-      listData.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item[valueField];
-        option.textContent = item[labelField];
-        select.appendChild(option);
-      });
-    } else {
-      console.error('Format listData tidak sesuai:', listData);
+    if (!data) {
+      throw new Error("Data detail tidak ditemukan");
     }
 
+    // 2. Isi Form ID (Penting untuk Update)
+    document.getElementById("formProductId").value = data.product_id;
+    document.getElementById("formCategoryId").value = data.category_id;
+    // (Optional) simpan id werehouse item jika perlu referensi lain, tapi biasanya update pakai ID di URL
+
+    // 3. Isi Data Text & Angka
+    document.getElementById("formProduct").value = data.product || "";
+    document.getElementById("formSKU").value = data.productcode || "";
+    document.getElementById("formDescription").value = data.description || "";
+
+    document.getElementById("formPrice").value = (
+      data.sale_price || 0
+    ).toLocaleString("id-ID");
+    document.getElementById("formBerat").value = (
+      data.weight || 0
+    ).toLocaleString("id-ID");
+    document.getElementById("formMinStock").value = (
+      data.minimum_stock || 0
+    ).toLocaleString("id-ID");
+    document.getElementById("formMaxStock").value = (
+      data.maximum_stock || 0
+    ).toLocaleString("id-ID");
+
+    // 4. Set Dropdown Unit
+    // Pastikan dropdown sudah terload, atau set value.
+    const unitSelect = document.getElementById("formUnit");
+    unitSelect.value = data.unit_id;
+
+    // 5. Load & Set Dropdown Material
+    // Kita harus load dropdown dulu berdasarkan category_id, baru set value material_id
+    if (data.category_id) {
+      await loadMaterialDropdown(data.category_id, data.material_id);
+    }
   } catch (error) {
-    console.error(`Gagal memuat data untuk ${selectId}:`, error);
-    select.innerHTML = `<option value="">Gagal memuat data</option>`;
+    console.error("Gagal load detail:", error);
+    Swal.fire("Error", "Gagal memuat detail data", "error");
   }
 }
 
-function switchTab(tabId) {
-  // Hide all tab contents
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-
-  // Remove active styling
-  document.querySelectorAll('.tab-link').forEach(btn => {
-    btn.classList.remove('bg-blue-100', 'text-blue-600', 'font-semibold');
-    btn.classList.add('text-gray-600');
-  });
-
-  // Show selected tab
-  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-  // Set active tab link
-  document.querySelector(`.tab-link[data-tab="${tabId}"]`).classList.add('bg-blue-100', 'text-blue-600', 'font-semibold');
-  document.querySelector(`.tab-link[data-tab="${tabId}"]`).classList.remove('text-gray-600');
+async function createData() {
+  await submitData("POST");
 }
 
-async function loadDetail(Id) {
-  document.getElementById('formTitle').innerText = `UPDATE DATA PRODUK`;
-  window.detail_id = Id;
-
-  await loadDropdown('formCategory', `${baseUrl}/list/product_category/${owner_id}`, 'category_id', 'category');
-  await loadDropdown('formUnit', `${baseUrl}/list/product_unit/${owner_id}`, 'unit_id', 'unit');
-  // await loadDropdown('formStatus', `${baseUrl}/list/product_status/${owner_id}`, 'status_id', 'status');
-
-try {
-  const res = await fetch(`${baseUrl}/detail/product/${Id}?_=${Date.now()}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${API_TOKEN}`
-    },
-    cache: 'no-store' // ⬅️ Ini memastikan data tidak diambil dari cache
-  });
-
-    const { detail } = await res.json();
-    console.log(detail);
-    document.getElementById('formSKU').value = detail.productcode || '';
-    document.getElementById('formProduct').value = detail.product || '';
-    document.getElementById('formCogs').value = detail.cogs?.toLocaleString('id-ID') || '';
-    document.getElementById('formPrice').value = detail.sale_price?.toLocaleString('id-ID') || '';
-    document.getElementById('formWholesale').value = detail.wholesale_price?.toLocaleString('id-ID') || '';
-    document.getElementById('formLimit').value = detail.limitstock || '';
-    document.getElementById('formCategory').value = detail.category_id || '';
-    document.getElementById('formUnit').value = detail.unit_id || '';
-    document.getElementById('formBerat').value = detail.weight?.toLocaleString('id-ID') || '';
-    document.getElementById('formDescription').value = detail.description || '';
-    // document.getElementById('formStatus').checked = detail.status_id === 1;
-
-    // Ambil business_category_id dari array business_categories
-    const selectedBusinessCategories = (detail.business_categories || []).map(cat => cat.business_category_id);
-
-    // Load dan centang kategori
-    await loadKategoriOptions(Id, selectedBusinessCategories);
-
-  } catch (err) {
-    console.error('Gagal load detail:', err);
-  }
+// Dipanggil tombol "Update"
+async function updateData() {
+  // detail_id didapat dari global window.detail_id yang dipassing saat loadModuleContent
+  await submitData("PUT", window.detail_id);
 }
 
+// --- FUNGSI AUTOCOMPLETE / PENCARIAN PRODUK ---
+function setupProductAutocomplete() {
+  const input = document.getElementById("formProduct");
+  const resultsContainer = document.getElementById("productSearchResults");
+  let debounceTimeout;
 
-async function loadKategoriOptions(Id, selectedIds = []) {
-  try {
-    const res = await fetch(`${baseUrl}/list/business_category/${owner_id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${API_TOKEN}`
-      }
-    });
+  input.addEventListener("input", function () {
+    const keyword = this.value.trim();
+    clearTimeout(debounceTimeout);
 
-    const result = await res.json();
-    const kategoriList = result.listData || [];
-
-    const container = document.getElementById('kategoriList');
-    const countDisplay = document.getElementById('selectedCount');
-    const searchInput = document.getElementById('searchKategori');
-
-    container.innerHTML = '';
-    countDisplay.textContent = `0 kategori dipilih`;
-
-    // Pisahkan yang terpilih dan tidak terpilih
-    const selectedItems = kategoriList.filter(item => selectedIds.includes(item.business_category_id));
-    const unselectedItems = kategoriList.filter(item => !selectedIds.includes(item.business_category_id));
-    const sortedList = [...selectedItems, ...unselectedItems];
-
-    sortedList.forEach(item => {
-      const checkboxWrapper = document.createElement('label');
-      checkboxWrapper.className = "flex items-start gap-2 p-2 border rounded hover:bg-gray-100 kategori-item";
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = 'kategori';
-      checkbox.value = item.business_category_id;
-      checkbox.className = 'mt-1';
-
-      // Jika termasuk yang dipilih
-      if (selectedIds.includes(item.business_category_id)) {
-        checkbox.checked = true;
-        checkboxWrapper.classList.add('bg-green-100'); // Warna hijau
-      }
-
-      const labelText = document.createElement('div');
-      labelText.innerHTML = `<strong>${item.business_category}</strong><br><small>${item.description || ''}</small>`;
-
-      checkboxWrapper.appendChild(checkbox);
-      checkboxWrapper.appendChild(labelText);
-      container.appendChild(checkboxWrapper);
-
-      checkbox.addEventListener('change', () => updateSelectedCount());
-
-      checkboxWrapper.dataset.category = `${item.business_category} ${item.description || ''}`.toLowerCase();
-    });
-
-    function updateSelectedCount() {
-      const selected = container.querySelectorAll('input[name="kategori"]:checked').length;
-      countDisplay.textContent = `${selected} kategori dipilih`;
+    if (keyword.length < 2) {
+      resultsContainer.classList.add("hidden");
+      return;
     }
 
-    // Inisialisasi count awal
-    updateSelectedCount();
+    debounceTimeout = setTimeout(async () => {
+      const searchUrl = `${baseUrl}/table/product_input/${owner_id}/1?seach=${encodeURIComponent(
+        keyword
+      )}`;
 
-    // Pencarian
-    searchInput.addEventListener('input', function () {
-      const keyword = this.value.toLowerCase();
-      const items = container.querySelectorAll('.kategori-item');
+      try {
+        resultsContainer.innerHTML =
+          '<div class="p-2 text-gray-500 text-sm">Mencari...</div>';
+        resultsContainer.classList.remove("hidden");
 
-      items.forEach(item => {
-        const text = item.dataset.category;
-        item.style.display = text.includes(keyword) ? 'flex' : 'none';
-      });
+        const response = await fetch(searchUrl, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${API_TOKEN}` },
+        });
+
+        const result = await response.json();
+        const products = result.tableData || [];
+
+        resultsContainer.innerHTML = "";
+
+        if (products.length === 0) {
+          resultsContainer.innerHTML =
+            '<div class="p-2 text-gray-500 text-sm">Produk tidak ditemukan.</div>';
+        } else {
+          products.forEach((item) => {
+            const div = document.createElement("div");
+            div.className =
+              "p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0";
+            div.innerHTML = `
+              <div class="font-bold text-sm text-gray-800">${item.product}</div>
+              <div class="text-xs text-gray-500">SKU: ${item.productcode}</div>
+            `;
+
+            div.addEventListener("click", () => {
+              selectProduct(item);
+              resultsContainer.classList.add("hidden");
+            });
+
+            resultsContainer.appendChild(div);
+          });
+        }
+      } catch (error) {
+        console.error("Search error:", error);
+      }
+    }, 500);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
+      resultsContainer.classList.add("hidden");
+    }
+  });
+}
+
+// --- FUNGSI SAAT PRODUK DIPILIH (AUTO-FILL & EDITABLE) ---
+async function selectProduct(item) {
+  console.log("Produk Terpilih:", item);
+
+  // Isi form (Pre-fill), user TETAP BISA EDIT manual setelah ini
+  document.getElementById("formProductId").value = item.product_id;
+  document.getElementById("formCategoryId").value = item.category_id;
+
+  document.getElementById("formProduct").value = item.product;
+  document.getElementById("formSKU").value = item.productcode || item.barcode;
+
+  document.getElementById("formPrice").value = (
+    item.sale_price || 0
+  ).toLocaleString("id-ID");
+  document.getElementById("formBerat").value = (
+    item.weight || 0
+  ).toLocaleString("id-ID");
+
+  // Set Unit Select (mencocokkan ID yang sudah diload sebelumnya)
+  document.getElementById("formUnit").value = item.unit_id;
+
+  // Load Material otomatis berdasarkan category_id produk
+  if (item.category_id) {
+    await loadMaterialDropdown(item.category_id);
+  }
+}
+
+// --- FUNGSI LOAD MATERIAL ---
+async function loadMaterialDropdown(categoryId, selectedMaterialId = null) {
+  const select = document.getElementById("formMaterial");
+  try {
+    // Reset dulu
+    select.innerHTML = `<option value="">Loading...</option>`;
+
+    const res = await fetch(
+      `${baseUrl}/list/product_category_material/${categoryId}`,
+      {
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      }
+    );
+    const result = await res.json();
+    const listData = result.listData || [];
+
+    select.innerHTML = `<option value="">Pilih Material...</option>`;
+
+    listData.forEach((mat) => {
+      const option = document.createElement("option");
+      option.value = mat.material_id;
+      option.textContent = mat.material;
+
+      // Logika auto-select
+      if (selectedMaterialId && mat.material_id == selectedMaterialId) {
+        option.selected = true;
+      }
+      select.appendChild(option);
     });
-
   } catch (err) {
-    console.error('Gagal load kategori:', err);
+    console.error(err);
+    select.innerHTML = `<option value="">Gagal load material</option>`;
   }
 }
 
-
-
+// --- GENERATE PAYLOAD ---
 function getDataPayload() {
-  const getVal = id => document.getElementById(id).value.trim();
-  const getInt = id => parseInt(getVal(id).replace(/\./g, ''), 10) || 0;
+  const getVal = (id) => document.getElementById(id).value.trim();
+  const getInt = (id) => parseInt(getVal(id).replace(/\./g, ""), 10) || 0;
+  const getFloat = (id) =>
+    parseFloat(getVal(id).replace(/\./g, "").replace(",", ".")) || 0;
 
-  const payload = {
-    owner_id,
-    productcode: getVal('formSKU'),
-    barcode: getVal('formSKU'),
-    product: getVal('formProduct'),
-    description: getVal('formDescription'),
-    limitstock: getInt('formLimit'),
-    category_id: parseInt(getVal('formCategory')),
-    business_category_id: 0,
-    unit_id: parseInt(getVal('formUnit')),
-    cogs: getInt('formCogs'),
-    sale_price: getInt('formPrice'),
-    wholesale_price: getInt('formWholesale'),
-    weight: getInt('formBerat'),
-    // status_id: 1,
-    business_category_ids: Array.from(document.querySelectorAll('#kategoriForm input[name="kategori"]:checked'))
-      .map(input => parseInt(input.value))
+  // Cek Session
+  if (typeof werehouse_id === "undefined" || !werehouse_id) {
+    Swal.fire({
+      icon: "error",
+      title: "Session Error",
+      text: "Werehouse ID tidak ditemukan.",
+    });
+    return null;
+  }
 
+  // Validasi Input
+  if (!getVal("formProductId")) {
+    Swal.fire({
+      icon: "warning",
+      title: "Data Kosong",
+      text: "Produk belum dipilih.",
+    });
+    return null;
+  }
+  if (!getVal("formMaterial")) {
+    Swal.fire({
+      icon: "warning",
+      title: "Data Kosong",
+      text: "Material belum dipilih.",
+    });
+    return null;
+  }
+
+  return {
+    owner_id: owner_id,
+    werehouse_id: werehouse_id,
+    product_id: parseInt(getVal("formProductId")),
+    material_id: parseInt(getVal("formMaterial")),
+    unit_id: parseInt(getVal("formUnit")),
+
+    productcode: getVal("formSKU"),
+    product: getVal("formProduct"),
+    description: getVal("formDescription"),
+
+    sale_price: getInt("formPrice"),
+    maximum_stock: getInt("formMaxStock"),
+    minimum_stock: getInt("formMinStock"),
+    weight: getFloat("formBerat"),
   };
-
-  console.log (payload);
-
-  // Validasi wajib
-  if (!payload.productcode || !payload.product || !payload.cogs || !payload.sale_price || !payload.category_id || !payload.unit_id) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Lengkapi data',
-      text: 'Pastikan semua input wajib sudah diisi.'
-    });
-    return null;
-  }
-
-  // Validasi logika harga
-  if (payload.sale_price < payload.cogs) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Harga Tidak Valid',
-      text: 'Harga jual tidak boleh lebih rendah dari harga pokok (COGS).'
-    });
-    return null;
-  }
-
-  if (payload.wholesale_price > payload.sale_price || payload.wholesale_price < payload.cogs) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Harga Grosir Tidak Valid',
-      text: 'Harga grosir harus di antara harga pokok dan harga jual.'
-    });
-    return null;
-  }
-
-  return payload;
 }
 
-async function submitData(method, id = '') {
-  const payload = getDataPayload();
-  if (!payload) return;
+async function submitData(method, id = "") {
+  const payload = getDataPayload(); // Ambil data dari form
+  if (!payload) return; // Stop jika validasi gagal
 
-  const url = `${baseUrl}/${method === 'POST' ? 'add' : 'update'}/product${id ? '/' + id : ''}`;
-  const actionText = method === 'POST' ? 'ditambahkan' : 'diperbarui';
+  // Tentukan URL berdasarkan Method
+  // POST -> add/product_werehouse
+  // PUT  -> update/product_werehouse/{id}
+  let endpoint = "";
+  if (method === "POST") {
+    endpoint = "add/product_werehouse";
+  } else {
+    endpoint = `update/product_werehouse/${id}`;
+  }
+
+  const url = `${baseUrl}/${endpoint}`;
+  const actionText = method === "POST" ? "ditambahkan" : "diperbarui";
+
+  console.log(`Mengirim ${method} ke: ${url}`);
+  console.log("Body:", payload);
 
   try {
     const response = await fetch(url, {
-      method,
+      method: method, // ⬅️ Pastikan ini 'POST' atau 'PUT' sesuai parameter
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_TOKEN}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_TOKEN}`,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const result = await response.json();
 
-    if (result.data && result.data.id) {
+    if (response.ok) {
+      // Cek HTTP Status 200-299
       Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: `Produk berhasil ${actionText}`
+        icon: "success",
+        title: "Berhasil",
+        text: `Data produk berhasil ${actionText}`,
       });
-      loadModuleContent('product');
+      loadModuleContent("product"); // Kembali ke list
     } else {
-      throw new Error(result.message || `Gagal ${actionText} produk`);
+      throw new Error(result.message || `Gagal ${actionText} data`);
     }
   } catch (error) {
     console.error(error);
     Swal.fire({
-      icon: 'error',
-      title: 'Gagal',
-      text: error.message || `Terjadi kesalahan saat ${actionText} produk.`
+      icon: "error",
+      title: "Gagal",
+      text: error.message || `Terjadi kesalahan koneksi.`,
     });
   }
 }
 
-// Contoh penggunaan:
-async function createData() {
-  await submitData('POST');
-}
-
-async function updateData() {
-  await submitData('PUT', detail_id);
-}
-
-
-async function loadKategoriOptions(Id, selectedIds = []) {
-  try {
-    const res = await fetch(`${baseUrl}/list/business_category/${owner_id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${API_TOKEN}`
-      }
-    });
-
-    const result = await res.json();
-    const kategoriList = result.listData || [];
-
-    const container = document.getElementById('kategoriList');
-    const countDisplay = document.getElementById('selectedCount');
-    const searchInput = document.getElementById('searchKategori');
-
-    container.innerHTML = '';
-    countDisplay.textContent = `0 kategori dipilih`;
-
-    // Pisahkan yang terpilih dan tidak terpilih
-    const selectedItems = kategoriList.filter(item => selectedIds.includes(item.business_category_id));
-    const unselectedItems = kategoriList.filter(item => !selectedIds.includes(item.business_category_id));
-    const sortedList = [...selectedItems, ...unselectedItems];
-
-    sortedList.forEach(item => {
-      const checkboxWrapper = document.createElement('label');
-      checkboxWrapper.className = "flex items-start gap-2 p-2 border rounded hover:bg-gray-100 kategori-item";
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = 'kategori';
-      checkbox.value = item.business_category_id;
-      checkbox.className = 'mt-1';
-
-      // Jika termasuk yang dipilih
-      if (selectedIds.includes(item.business_category_id)) {
-        checkbox.checked = true;
-        checkboxWrapper.classList.add('bg-green-100'); // Warna hijau
-      }
-
-      const labelText = document.createElement('div');
-      labelText.innerHTML = `<strong>${item.business_category}</strong><br><small>${item.description || ''}</small>`;
-
-      checkboxWrapper.appendChild(checkbox);
-      checkboxWrapper.appendChild(labelText);
-      container.appendChild(checkboxWrapper);
-
-      checkbox.addEventListener('change', () => updateSelectedCount());
-
-      checkboxWrapper.dataset.category = `${item.business_category} ${item.description || ''}`.toLowerCase();
-    });
-
-    function updateSelectedCount() {
-      const selected = container.querySelectorAll('input[name="kategori"]:checked').length;
-      countDisplay.textContent = `${selected} kategori dipilih`;
-    }
-
-    // Inisialisasi count awal
-    updateSelectedCount();
-
-    // Pencarian
-    searchInput.addEventListener('input', function () {
-      const keyword = this.value.toLowerCase();
-      const items = container.querySelectorAll('.kategori-item');
-
-      items.forEach(item => {
-        const text = item.dataset.category;
-        item.style.display = text.includes(keyword) ? 'flex' : 'none';
-      });
-    });
-
-  } catch (err) {
-    console.error('Gagal load kategori:', err);
-  }
-}
-
-function formatCurrencyInput(input) {
-  const raw = input.value.replace(/[^\d]/g, '');
-  if (!raw) {
-    input.value = '';
-    return;
-  }
-  input.value = parseInt(raw, 10).toLocaleString('id-ID');
-}
-
-function getNumericValue(inputId) {
-  const val = document.getElementById(inputId).value.replace(/[^\d]/g, '');
-  return parseInt(val || '0', 10);
-}
-
-function validatePrices() {
-  const cogs = getNumericValue('formCogs');
-  const price = getNumericValue('formPrice');
-  const wholesale = getNumericValue('formWholesale');
-
-  // Reset messages
-  document.getElementById('warnPrice').textContent = '';
-  document.getElementById('warnWholesale').textContent = '';
-
-  if (price < cogs) {
-    document.getElementById('warnPrice').textContent = '❌ Harga jual tidak boleh lebih rendah dari harga pokok.';
-  }
-
-  if (wholesale > price || wholesale < cogs) {
-    document.getElementById('warnWholesale').textContent = '❌ Harga grosir harus di antara harga pokok dan harga jual.';
-  }
-}
-
+// --- HELPER FORMAT ANGKA ---
 function setupPriceInputEvents() {
-  ['formCogs', 'formPrice', 'formWholesale'].forEach(id => {
+  ["formPrice", "formBerat", "formMinStock", "formMaxStock"].forEach((id) => {
     const input = document.getElementById(id);
-
-    input.addEventListener('input', () => {
-      formatCurrencyInput(input);
-
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(() => {
-        validatePrices();
-      }, 800);
-    });
+    if (input) {
+      input.addEventListener("input", () => formatCurrencyInput(input));
+    }
   });
 }
 
+function formatCurrencyInput(input) {
+  const raw = input.value.replace(/[^\d]/g, "");
+  if (!raw) {
+    input.value = "";
+    return;
+  }
+  input.value = parseInt(raw, 10).toLocaleString("id-ID");
+}
 
+// Reuse fungsi loadDropdown Anda sebelumnya
+async function loadDropdown(selectId, apiUrl, valueField, labelField) {
+  const select = document.getElementById(selectId);
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${API_TOKEN}` },
+    });
+    const result = await response.json();
+    const listData = result.listData;
 
-
-
-
-
-
-
-
+    select.innerHTML = `<option value="">Pilih...</option>`;
+    if (Array.isArray(listData)) {
+      listData.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item[valueField];
+        option.textContent = item[labelField];
+        select.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error(`Gagal memuat ${selectId}:`, error);
+  }
+}

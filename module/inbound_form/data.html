@@ -18,32 +18,18 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <button onclick="saveInbound()"
-          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan Stok Masuk</button>
+        <button id="btnSaveInbound" onclick="submitInbound('POST')"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">
+          Simpan Stok Masuk
+        </button>
+
+        <button id="btnUpdateInbound" onclick="submitInbound('PUT', window.detail_id)"
+          class="hidden bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">
+          Update Data
+        </button>
+
         <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
       </div>
-    </div>
-
-    <div class="flex gap-2 border-b mb-6 overflow-x-auto">
-      <button onclick="loadModuleContent('product_form', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📦 Informasi Produk
-      </button>
-
-      <button onclick="loadModuleContent('product_inbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition border-b-2 border-blue-600 text-blue-600 focus:outline-none whitespace-nowrap">
-        📥 Inbound (Masuk)
-      </button>
-
-      <button onclick="loadModuleContent('product_outbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📤 Outbound (Keluar)
-      </button>
-
-      <button onclick="loadModuleContent('product_stok', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        🔄 Mutasi Stok
-      </button>
     </div>
 
 
@@ -78,11 +64,20 @@
       <div>
         <h2 class="text-blue-600 text-lg font-semibold mb-4">Detail Barang</h2>
 
-        <div class="mb-4 flex items-center">
-          <label class="w-40 font-medium">Pilih Produk <span class="text-red-500">*</span></label>
-          <select id="inboundProduct" class="flex-1 border rounded px-3 py-2 bg-gray-50">
-            <option value="">Loading Product...</option>
-          </select>
+        <input type="hidden" id="inboundProductWerehouseId" />
+        <input type="hidden" id="inboundProductId" />
+
+        <div class="mb-4 relative">
+          <label class="block font-medium mb-1">Cari Produk <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <input type="text" id="inboundProductSearch" placeholder="Ketik nama produk gudang..." autocomplete="off"
+              class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+
+            <div id="inboundSearchResults"
+              class="hidden absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto mt-1">
+            </div>
+          </div>
+          <small class="text-gray-500">Data diambil dari Product Warehouse.</small>
         </div>
 
         <div class="mb-4 flex items-center">
@@ -110,25 +105,6 @@
             class="flex-1 border bg-gray-100 rounded px-3 py-2 text-gray-500" placeholder="Auto hitung..." />
         </div>
       </div>
-    </div>
-
-
-
-    <div class="border rounded-lg overflow-hidden">
-      <div class="bg-gray-50 px-4 py-2 border-b font-semibold text-gray-700">Riwayat Inbound Terakhir</div>
-      <table class="w-full text-sm text-left">
-        <thead class="bg-white text-gray-600 border-b">
-          <tr>
-            <th class="px-4 py-2">Tanggal</th>
-            <th class="px-4 py-2">Invoice</th>
-            <th class="px-4 py-2">Gudang</th>
-            <th class="px-4 py-2 text-right">Qty</th>
-            <th class="px-4 py-2 text-right">Harga Beli</th>
-          </tr>
-        </thead>
-        <tbody id="tableInboundBody">
-        </tbody>
-      </table>
     </div>
 
   </section>

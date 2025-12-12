@@ -24,27 +24,7 @@
       </div>
     </div>
 
-    <div class="flex gap-2 border-b mb-6 overflow-x-auto">
-      <button onclick="loadModuleContent('product_form', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📦 Informasi Produk
-      </button>
 
-      <button onclick="loadModuleContent('product_inbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        📥 Inbound (Masuk)
-      </button>
-
-      <button onclick="loadModuleContent('product_outbound', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition border-b-2 border-blue-600 text-blue-600 focus:outline-none whitespace-nowrap">
-        📤 Outbound (Keluar)
-      </button>
-
-      <button onclick="loadModuleContent('product_stok', window.detail_id, window.detail_desc)"
-        class="px-4 py-2 font-semibold transition hover:text-gray-700 text-gray-500 whitespace-nowrap">
-        🔄 Mutasi Stok
-      </button>
-    </div>
 
     <div class="bg-red-50 border border-red-100 p-6 rounded mb-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -90,24 +70,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-
-    <div class="border rounded-lg overflow-hidden">
-      <div class="bg-gray-50 px-4 py-2 border-b font-semibold text-gray-700">Riwayat Outbound Manual</div>
-      <table class="w-full text-sm text-left">
-        <thead class="bg-white text-gray-600 border-b">
-          <tr>
-            <th class="px-4 py-2">Tanggal</th>
-            <th class="px-4 py-2">Tipe</th>
-            <th class="px-4 py-2">Gudang</th>
-            <th class="px-4 py-2 text-right">Qty Keluar</th>
-            <th class="px-4 py-2">Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="tableOutboundBody">
-        </tbody>
-      </table>
     </div>
 
   </section>

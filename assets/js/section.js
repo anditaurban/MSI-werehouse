@@ -184,6 +184,9 @@ const allMenus = {
   shipment: { icon: "🚚", label: "Pengiriman", badge: true },
   product: { icon: "📋", label: "Produk" },
   opname: { icon: "🗳️", label: "Opname" },
+  inbound: { icon: "📥", label: "Inbound" },
+  outbound: { icon: "📤", label: "Outbound" },
+  mutasi: { icon: "🔄", label: "Mutasi" },
   contact: { icon: "👤", label: "Pelanggan" },
   report: { icon: "📈", label: "Laporan" },
   employee: { icon: "🧑‍💼", label: "Karyawan" },
@@ -193,7 +196,16 @@ const allMenus = {
 
 const roleMenus = {
   superadmin: Object.keys(allMenus),
-  sales: ["sales", "receipt", "package", "shipment", "contact"],
+  sales: [
+    "sales",
+    "receipt",
+    "package",
+    "shipment",
+    "contact",
+    "inbound",
+    "outbound",
+    "mutasi",
+  ],
   finance: ["sales", "receipt", "product", "opname", "contact"],
   shipping: ["package", "shipment"],
   packing: ["package", "shipment"],
@@ -251,6 +263,9 @@ function renderSidebar(role) {
           </div>
           <div id="productSubmenu" class="hidden ml-8 flex flex-col space-y-2">
             ${createMenuItem("product", allMenus.product)}
+            ${createMenuItem("inbound", allMenus.inbound)}
+            ${createMenuItem("outbound", allMenus.outbound)}
+            ${createMenuItem("mutasi", allMenus.mutasi)}
             ${createMenuItem("opname", allMenus.opname)}
           </div>
         </div>
