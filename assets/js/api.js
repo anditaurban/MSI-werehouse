@@ -1,7 +1,7 @@
 const isLocalhost = [
   "localhost",
   "127.0.0.1",
-  "msi-order-system.vercel.app",
+  "msi-werehouse.vercel.app",
 ].includes(window.location.hostname);
 
 const mode = isLocalhost ? "development" : "production";
