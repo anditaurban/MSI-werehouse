@@ -24,6 +24,11 @@ window.rowTemplate = function (item, index, perPage = 10) {
     </td>
 
     <!-- Harga -->
+<td class="px-6 py-4 text-sm text-right text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+      <span class="font-medium sm:hidden">Harga</span>
+      ${formatRupiah(item.cogs || 0)}
+    </td>
+
     <td class="px-6 py-4 text-sm text-right text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
       <span class="font-medium sm:hidden">Harga</span>
       ${formatRupiah(item.sale_price || 0)}
