@@ -42,6 +42,7 @@ async function loadDetailWerehouse(id) {
       headers: { Authorization: `Bearer ${API_TOKEN}` },
     });
 
+    await loadDropdown();
     const result = await response.json();
     console.log("Data Detail:", result);
 
@@ -132,7 +133,9 @@ function setupProductAutocomplete() {
         });
 
         const result = await response.json();
-        const products = result.tableData || [];
+        const products = (result.tableData || []).filter((item) =>
+          item.product?.toLowerCase().includes(keyword.toLowerCase())
+        );
 
         resultsContainer.innerHTML = "";
 

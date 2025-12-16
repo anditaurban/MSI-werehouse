@@ -28,7 +28,7 @@
           Update Data
         </button>
 
-        <button onclick="loadModuleContent('product')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
+        <button onclick="loadModuleContent('inbound')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
       </div>
     </div>
 
@@ -48,12 +48,6 @@
           <input type="text" id="inboundInv" placeholder="INV-001" class="flex-1 border rounded px-3 py-2" />
         </div>
 
-        <div class="mb-4 flex items-center">
-          <label class="w-40 font-medium">Warehouse <span class="text-red-500">*</span></label>
-          <select id="inboundWarehouse" class="flex-1 border rounded px-3 py-2">
-            <option value="">Pilih Gudang...</option>
-          </select>
-        </div>
 
         <div class="mb-4 flex items-center">
           <label class="w-40 font-medium">Notes</label>
@@ -82,8 +76,7 @@
 
         <div class="mb-4 flex items-center">
           <label class="w-40 font-medium">Qty Masuk <span class="text-red-500">*</span></label>
-          <input type="number" id="inboundQty" class="flex-1 border rounded px-3 py-2 font-bold text-green-600"
-            placeholder="0" />
+          <input type="number" id="inboundQty" class="flex-1 border rounded px-3 py-2 font-bold" placeholder="0" />
         </div>
 
         <div class="mb-4 flex items-center">
