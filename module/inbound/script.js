@@ -30,6 +30,11 @@ window.rowTemplate = function (item, index, perPage = 10) {
     <span class="font-medium sm:hidden">Kategori</span>  
     ${formatRupiah(item.purchase_price)}
     </td>
+
+    <td class="px-6 py-4 text-sm text-center text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+    <span class="font-medium sm:hidden">Kategori</span>  
+    ${formatRupiah(item.harga_satuan)}
+    </td>
   
      <td class="px-6 py-4 text-sm text-right text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Stok</span>  

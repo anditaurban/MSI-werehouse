@@ -49,6 +49,8 @@ window.rowTemplate = function (item, index, perPage = 10) {
     <span class="font-medium sm:hidden">Kategori</span>  
     ${item.notes || "-"}
     </td>
+
+    
   </tr>`;
 };
 
