@@ -44,11 +44,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
     <!-- Kemitraan (DATA TIDAK ADA → TAMPIL "-") -->
     <td class="px-6 py-4 text-sm text-right text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
       <span class="font-medium sm:hidden">Kemitraan</span>
-      ${
-        item.business_categories
-          ?.map?.((c) => c.business_category)
-          .join(", ") || "-"
-      }
+      ${item.stock}
     </td>
 
     <!-- Status + Dropdown -->

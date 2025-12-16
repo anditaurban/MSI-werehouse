@@ -2,27 +2,19 @@ pagemodule = "Product";
 setDataType("product_werehouse");
 
 // --- INISIALISASI ---
-// 1. Setup format angka real-time
-
 if (window.detail_id) {
   document.getElementById("addButton").classList.add("hidden");
   document.getElementById("updateButton").classList.remove("hidden");
   document.getElementById("formTitle").innerText = "UPDATE PRODUK GUDANG";
-  loadDropdown(
-    "formUnit",
-    `${baseUrl}/list/product_unit/${owner_id}`,
-    "unit_id",
-    "unit"
-  );
 
-  // Panggil fungsi load detail khusus product_werehouse
+  // Load data detail untuk Edit
   loadDetailWerehouse(window.detail_id);
 } else {
   document.getElementById("updateButton").classList.add("hidden");
   document.getElementById("addButton").classList.remove("hidden");
   setupPriceInputEvents();
 
-  // 2. Load Dropdown Satuan (Unit) langsung
+  // Load Dropdown Satuan (Unit)
   loadDropdown(
     "formUnit",
     `${baseUrl}/list/product_unit/${owner_id}`,
@@ -30,59 +22,55 @@ if (window.detail_id) {
     "unit"
   );
 
-  // 3. Setup Pencarian Produk
+  // Setup Pencarian Produk
   setupProductAutocomplete();
 }
 
+// --- FUNGSI LOAD DETAIL (EDIT MODE) ---
 async function loadDetailWerehouse(id) {
   try {
-    // 1. Fetch data detail
     const response = await fetch(`${baseUrl}/detail/product_werehouse/${id}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${API_TOKEN}` },
     });
 
-    await loadDropdown();
     const result = await response.json();
-    console.log("Data Detail:", result);
-
-    // Asumsi response structure: { detail: { ...data } }
     const data = result.detail;
 
-    if (!data) {
-      throw new Error("Data detail tidak ditemukan");
-    }
+    if (!data) throw new Error("Data detail tidak ditemukan");
 
-    // 2. Isi Form ID (Penting untuk Update)
+    // 1. Isi Hidden ID
     document.getElementById("formProductId").value = data.product_id;
-    document.getElementById("formCategoryId").value = data.category_id;
-    // (Optional) simpan id werehouse item jika perlu referensi lain, tapi biasanya update pakai ID di URL
 
-    // 3. Isi Data Text & Angka
+    // PENTING: Set Category ID ke hidden input agar nanti bisa dipakai jika user ganti material
+    document.getElementById("formCategoryId").value = data.category_id;
+
+    // 2. Isi Form Teks & Angka
     document.getElementById("formProduct").value = data.product || "";
     document.getElementById("formSKU").value = data.productcode || "";
     document.getElementById("formDescription").value = data.description || "";
 
-    document.getElementById("formPrice").value = (
-      data.sale_price || 0
-    ).toLocaleString("id-ID");
-    document.getElementById("formBerat").value = (
-      data.weight || 0
-    ).toLocaleString("id-ID");
-    document.getElementById("formMinStock").value = (
-      data.minimum_stock || 0
-    ).toLocaleString("id-ID");
-    document.getElementById("formMaxStock").value = (
-      data.maximum_stock || 0
-    ).toLocaleString("id-ID");
+    const formatNum = (num) => (num || 0).toLocaleString("id-ID");
+    document.getElementById("formPrice").value = formatNum(data.sale_price);
+    document.getElementById("formBerat").value = formatNum(data.weight);
+    document.getElementById("formMinStock").value = formatNum(
+      data.minimum_stock
+    );
+    document.getElementById("formMaxStock").value = formatNum(
+      data.maximum_stock
+    );
 
-    // 4. Set Dropdown Unit
-    // Pastikan dropdown sudah terload, atau set value.
-    const unitSelect = document.getElementById("formUnit");
-    unitSelect.value = data.unit_id;
+    // 3. Load Dropdown Unit (Load ulang untuk memastikan value terpilih)
+    await loadDropdown(
+      "formUnit",
+      `${baseUrl}/list/product_unit/${owner_id}`,
+      "unit_id",
+      "unit"
+    );
+    document.getElementById("formUnit").value = data.unit_id;
 
-    // 5. Load & Set Dropdown Material
-    // Kita harus load dropdown dulu berdasarkan category_id, baru set value material_id
+    // 4. LOAD MATERIAL BERDASARKAN KATEGORI PRODUK
+    // Ini otomatis memfilter material sesuai category_id dari data detail
     if (data.category_id) {
       await loadMaterialDropdown(data.category_id, data.material_id);
     }
@@ -91,6 +79,87 @@ async function loadDetailWerehouse(id) {
     Swal.fire("Error", "Gagal memuat detail data", "error");
   }
 }
+
+// --- FUNGSI SAAT PRODUK DIPILIH DARI SEARCH (ADD MODE) ---
+async function selectProduct(item) {
+  console.log("Produk Terpilih:", item);
+
+  // 1. Simpan Product ID & Category ID (Hidden)
+  document.getElementById("formProductId").value = item.product_id;
+  document.getElementById("formCategoryId").value = item.category_id; // <--- INI KUNCINYA
+
+  // 2. Isi Field Visual (Readonly/Editable)
+  document.getElementById("formProduct").value = item.product;
+  document.getElementById("formSKU").value = item.productcode || item.barcode;
+
+  document.getElementById("formPrice").value = (
+    item.sale_price || 0
+  ).toLocaleString("id-ID");
+  document.getElementById("formBerat").value = (
+    item.weight || 0
+  ).toLocaleString("id-ID");
+
+  // 3. Auto Select Unit jika ada datanya
+  if (item.unit_id) {
+    document.getElementById("formUnit").value = item.unit_id;
+  }
+
+  // 4. LOAD MATERIAL OTOMATIS
+  // Langsung panggil list material berdasarkan category_id dari produk yg dipilih
+  if (item.category_id) {
+    await loadMaterialDropdown(item.category_id);
+  } else {
+    // Jaga-jaga jika produk master tidak punya kategori
+    document.getElementById("formMaterial").innerHTML =
+      '<option value="">Produk ini tidak memiliki kategori</option>';
+  }
+}
+
+// --- FUNGSI LOAD MATERIAL (Dependency Dropdown) ---
+async function loadMaterialDropdown(categoryId, selectedMaterialId = null) {
+  const select = document.getElementById("formMaterial");
+
+  if (!categoryId) return;
+
+  try {
+    select.innerHTML = `<option value="">Loading Material...</option>`;
+    select.disabled = true;
+
+    // Fetch Material sesuai Kategori
+    const res = await fetch(
+      `${baseUrl}/list/product_category_material/${categoryId}`,
+      { headers: { Authorization: `Bearer ${API_TOKEN}` } }
+    );
+    const result = await res.json();
+    const listData = result.listData || [];
+
+    select.innerHTML = `<option value="">Pilih Material...</option>`;
+
+    if (listData.length === 0) {
+      select.innerHTML = `<option value="">Tidak ada material untuk kategori ini</option>`;
+    } else {
+      listData.forEach((mat) => {
+        const option = document.createElement("option");
+        option.value = mat.material_id;
+        option.textContent = mat.material;
+
+        // Auto select jika mode edit
+        if (selectedMaterialId && mat.material_id == selectedMaterialId) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+    }
+    select.disabled = false;
+  } catch (err) {
+    console.error(err);
+    select.innerHTML = `<option value="">Gagal load material</option>`;
+    select.disabled = false;
+  }
+}
+
+// --- SISA KODE LAINNYA (Autocomplete, Submit, Helper Angka) TETAP SAMA ---
+// (Pastikan fungsi setupProductAutocomplete, getDataPayload, submitData, dll tetap ada di bawah sini)
 
 async function createData() {
   await submitData("POST");
@@ -171,68 +240,6 @@ function setupProductAutocomplete() {
       resultsContainer.classList.add("hidden");
     }
   });
-}
-
-// --- FUNGSI SAAT PRODUK DIPILIH (AUTO-FILL & EDITABLE) ---
-async function selectProduct(item) {
-  console.log("Produk Terpilih:", item);
-
-  // Isi form (Pre-fill), user TETAP BISA EDIT manual setelah ini
-  document.getElementById("formProductId").value = item.product_id;
-  document.getElementById("formCategoryId").value = item.category_id;
-
-  document.getElementById("formProduct").value = item.product;
-  document.getElementById("formSKU").value = item.productcode || item.barcode;
-
-  document.getElementById("formPrice").value = (
-    item.sale_price || 0
-  ).toLocaleString("id-ID");
-  document.getElementById("formBerat").value = (
-    item.weight || 0
-  ).toLocaleString("id-ID");
-
-  // Set Unit Select (mencocokkan ID yang sudah diload sebelumnya)
-  document.getElementById("formUnit").value = item.unit_id;
-
-  // Load Material otomatis berdasarkan category_id produk
-  if (item.category_id) {
-    await loadMaterialDropdown(item.category_id);
-  }
-}
-
-// --- FUNGSI LOAD MATERIAL ---
-async function loadMaterialDropdown(categoryId, selectedMaterialId = null) {
-  const select = document.getElementById("formMaterial");
-  try {
-    // Reset dulu
-    select.innerHTML = `<option value="">Loading...</option>`;
-
-    const res = await fetch(
-      `${baseUrl}/list/product_category_material/${categoryId}`,
-      {
-        headers: { Authorization: `Bearer ${API_TOKEN}` },
-      }
-    );
-    const result = await res.json();
-    const listData = result.listData || [];
-
-    select.innerHTML = `<option value="">Pilih Material...</option>`;
-
-    listData.forEach((mat) => {
-      const option = document.createElement("option");
-      option.value = mat.material_id;
-      option.textContent = mat.material;
-
-      // Logika auto-select
-      if (selectedMaterialId && mat.material_id == selectedMaterialId) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
-  } catch (err) {
-    console.error(err);
-    select.innerHTML = `<option value="">Gagal load material</option>`;
-  }
 }
 
 // --- GENERATE PAYLOAD ---
