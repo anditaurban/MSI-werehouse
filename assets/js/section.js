@@ -24,9 +24,9 @@ document.getElementById("logout").addEventListener("click", function () {
   });
 });
 
-if (owner_id && user_id) {
+if (owner_id || user_id || level || username) {
   // const welcomeMessageSpan = document.getElementById('nameUser');
-  // welcomeMessageSpan.textContent = `Hi, ${username || nama} 👋`;
+  // welcomeMessageSpan.textContent = `Hi, ${nama} 👋`;
 }
 
 expandSidebar();
@@ -187,6 +187,7 @@ const allMenus = {
   inbound: { icon: "📥", label: "Inbound" },
   outbound: { icon: "📤", label: "Outbound" },
   mutasi: { icon: "🔄", label: "Mutasi" },
+  warehouse: { icon: "🏭", label: "Gudang" },
   contact: { icon: "👤", label: "Pelanggan" },
   report: { icon: "📈", label: "Laporan" },
   employee: { icon: "🧑‍💼", label: "Karyawan" },
@@ -194,22 +195,22 @@ const allMenus = {
   setting: { icon: "⚙️", label: "Pengaturan" },
 };
 
-const roleMenus = {
-  superadmin: Object.keys(allMenus),
-  sales: [
-    "sales",
-    "receipt",
-    "package",
-    "shipment",
-    "contact",
-    "inbound",
-    "outbound",
-    "mutasi",
-  ],
-  finance: ["sales", "receipt", "product", "opname", "contact"],
-  shipping: ["package", "shipment"],
-  packing: ["package", "shipment"],
-};
+// const roleMenus = {
+//   superadmin: Object.keys(allMenus),
+//   sales: [
+//     "sales",
+//     "receipt",
+//     "package",
+//     "shipment",
+//     "contact",
+//     "opname",
+//     "inbound",
+//     "outbound",
+//   ],
+//   finance: ["sales", "receipt", "product", "warehouse", "contact"],
+//   shipping: ["package", "shipment"],
+//   packing: ["package", "shipment"],
+// };
 
 const createMenuItem = (key, menu) => {
   const badgeSpan = menu.badge
@@ -223,21 +224,18 @@ const createMenuItem = (key, menu) => {
     </a>`;
 };
 
-function renderSidebar(role) {
-  const allowed = roleMenus[role] || [];
+function renderSidebar() {
   const menuContainer = document.getElementById("sidebarMenu");
   menuContainer.innerHTML = "";
 
-  if (role === "superadmin") {
-    menuContainer.innerHTML = `
+  menuContainer.innerHTML = `
       <!-- DASHBOARD (DISABLED) -->
       <div class="pointer-events-none opacity-60 text-gray-400">
         ${createMenuItem("dashboard", allMenus.dashboard)}
       </div>
 
-      <!-- PENJUALAN (DISABLED TOTAL, SUBMENU TIDAK DITAMPILKAN) -->
-      <div class="flex items-center gap-2 py-2 px-2 rounded-lg
-                  text-gray-400 opacity-60 cursor-not-allowed">
+      <!-- PENJUALAN (DISABLED TOTAL) -->
+      <div class="flex items-center gap-2 py-2 px-2 text-gray-400 opacity-60 cursor-not-allowed">
         <span>💼</span>
         <span class="menu-text">Penjualan</span>
       </div>
@@ -264,8 +262,10 @@ function renderSidebar(role) {
           ${createMenuItem("inbound", allMenus.inbound)}
           ${createMenuItem("outbound", allMenus.outbound)}
           ${createMenuItem("mutasi", allMenus.mutasi)}
-          <div class="pointer-events-none opacity-60 text-gray-400>
-          ${createMenuItem("opname", allMenus.opname)}
+
+          <!-- OPNAME (DISABLED) -->
+          <div class="pointer-events-none opacity-60 text-gray-400">
+            ${createMenuItem("opname", allMenus.opname)}
           </div>
         </div>
       </div>
@@ -279,16 +279,15 @@ function renderSidebar(role) {
         ${createMenuItem("setting_unit", allMenus.setting)}
       </div>
     `;
-  } else {
-    allowed.forEach((key) => {
-      if (allMenus[key]) {
-        menuContainer.innerHTML += createMenuItem(key, allMenus[key]);
-      }
-    });
-  }
+  // Role selain superadmin
+  allowed.forEach((key) => {
+    if (allMenus[key]) {
+      menuContainer.innerHTML += createMenuItem(key, allMenus[key]);
+    }
+  });
 }
 
-renderSidebar(userRole);
+renderSidebar();
 
 checkApiStatus();
 setInterval(loadBadge, 1000);
