@@ -3,20 +3,24 @@
 
     <div class="flex flex-wrap items-start justify-between mb-6 gap-4">
       <div>
-        <h1 class="text-2xl font-bold mb-1">OUTBOUND PRODUK</h1>
+        <h1 class="text-2xl font-bold mb-1">FORM PRODUK KELUAR</h1>
         <nav class="text-gray-500 text-sm flex items-center flex-wrap gap-1">
           <span>Produk</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
-          <span class="font-medium">Stok Keluar</span>
+          <span>Persediaan</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          <span class="font-medium">Form Produk Keluar</span>
         </nav>
       </div>
 
       <div class="flex flex-wrap gap-2">
         <button id="btnSaveOutbound" onclick="submitOutbound('POST')"
           class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded">
-          Simpan Outbound
+          Simpan Data
         </button>
         <button id="btnUpdateOutbound" onclick="submitOutbound('PUT', window.detail_id)"
           class="hidden bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">

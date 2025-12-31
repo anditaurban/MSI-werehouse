@@ -1,5 +1,5 @@
 pagemodule = "product mutation";
-colSpanCount = 4;
+colSpanCount = 6;
 setDataType("product_mutation");
 fetchAndUpdateData();
 
@@ -10,7 +10,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
   return `
   <tr class="flex flex-col sm:table-row border rounded sm:rounded-none mb-4 sm:mb-0 shadow-sm sm:shadow-none transition hover:bg-gray-50">
   
-     <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+     <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 text-left flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Barang</span>  
     ${item.mutation_date}
     </td>
@@ -21,17 +21,17 @@ window.rowTemplate = function (item, index, perPage = 10) {
       ${item.product}
     </td>
   
-     <td class="px-6 py-4 text-sm text-center text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+     <td class="text-left px-6 py-4 text-sm text-center text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Kategori</span>  
     ${item.category}
     </td>
   
-     <td class="px-6 py-4 text-sm text-center text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+     <td class="text-left px-6 py-4 text-sm text-center text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Stok</span>  
     ${finance(item.qty)}
     </td>
   
-     <td class="px-6 py-4 text-sm text-left text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+     <td class="text-left px-6 py-4 text-sm text-left text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Kemitraan</span>  
     ${item.notes}
 <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
@@ -51,7 +51,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
       </div>
     </td>
 
-    <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
+    <td class="text-left px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Barang</span>  
     ${item.werehouse_destination || "-"}
     </td>
