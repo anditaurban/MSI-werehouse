@@ -369,6 +369,7 @@ async function submitRetur(method, id = "") {
   }
 }
 // --- 6. LOAD DETAIL (EDIT) - FIX MAPPING ---
+// --- 6. LOAD DETAIL (EDIT) - FIX MAPPING ---
 async function loadReturDetail(id) {
   try {
     const res = await fetch(`${baseUrl}/detail/product_return/${id}`, {
@@ -377,7 +378,7 @@ async function loadReturDetail(id) {
     const result = await res.json();
     const data = result.detail;
 
-    console.log("📩 Detail Response:", data); // Cek isi data di Console
+    console.log("📩 Detail Response:", data); // Cek console untuk memastikan data masuk
 
     if (!data) throw new Error("Data tidak ditemukan");
 
@@ -387,32 +388,19 @@ async function loadReturDetail(id) {
       if (el) el.value = val;
     };
 
-    // 1. Mapping Data Transaksi
+    // 1. Mapping Transaksi
     setVal("returDate", data.return_date);
     setVal("returQty", data.qty);
-
-    // FIX: Ambil dari 'notes' (jamak), jika kosong string kosong
-    setVal("returNotes", data.notes || data.note || "");
+    setVal("returNotes", data.notes || ""); // Key: "notes"
 
     // 2. Mapping Produk
     setVal("returProductWerehouseId", data.product_werehouse_id);
-    setVal("returProductSearch", data.product || ""); // Key 'product'
+    setVal("returProductSearch", data.product || "");
 
-    // 3. Mapping Pelanggan (MITRA)
-    // Masalah: JSON Anda TIDAK punya field ini.
-    // Solusi: Kode ini mencoba baca berbagai kemungkinan key.
-    // Jika Backend belum nambah, field ini akan tetap kosong.
-
-    const plgId = data.pelanggan_id || data.client_id || "";
-    const plgName =
-      data.pelanggan_name || data.customer_name || data.client_name || "";
-
-    setVal("returPelangganId", plgId);
-    setVal("returPelangganSearch", plgName);
-
-    if (!plgId) {
-      console.warn("⚠️ Data Pelanggan tidak ditemukan di response API.");
-    }
+    // 3. Mapping Mitra / Pelanggan
+    // Key JSON: "pelanggan_id" & "mitra"
+    setVal("returPelangganId", data.pelanggan_id || "");
+    setVal("returPelangganSearch", data.mitra || "");
   } catch (e) {
     console.error("Load Detail Error:", e);
     Swal.fire("Error", "Gagal memuat detail data.", "error");
