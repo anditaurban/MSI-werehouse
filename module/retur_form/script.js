@@ -1,20 +1,15 @@
 pagemodule = "Retur";
 setDataType("retur");
 
-// --- 1. INISIALISASI & UI SETUP ---
+// --- 1. INISIALISASI ---
 
-// Tampilkan nama gudang dari session
-if (typeof user !== "undefined" && user.werehouse) {
-  const warehouseDisplay = document.getElementById("returWarehouseName");
-  if (warehouseDisplay) warehouseDisplay.value = user.werehouse;
-}
+// Jalankan Setup Autocomplete untuk Pelanggan & Produk
+setupPelangganAutocomplete();
+setupProductAutocomplete();
 
-// Jalankan Autocomplete
-setupReturAutocomplete();
-
-// --- 2. LOGIKA MODE (ADD vs EDIT) ---
+// --- 2. CEK MODE ---
 if (window.detail_id) {
-  // Mode Update
+  // MODE EDIT
   const btnSave = document.getElementById("btnSaveRetur");
   const btnUpdate = document.getElementById("btnUpdateRetur");
   const title = document.getElementById("formTitle");
@@ -23,25 +18,123 @@ if (window.detail_id) {
   if (btnUpdate) btnUpdate.classList.remove("hidden");
   if (title) title.innerText = "UPDATE DATA RETUR";
 
-  // Load Data Detail
   loadReturDetail(window.detail_id);
 } else {
-  // Mode Tambah
+  // MODE TAMBAH
   const btnSave = document.getElementById("btnSaveRetur");
   const btnUpdate = document.getElementById("btnUpdateRetur");
-
   if (btnUpdate) btnUpdate.classList.add("hidden");
   if (btnSave) btnSave.classList.remove("hidden");
 
-  // Default Tanggal
   const dateInput = document.getElementById("returDate");
   if (dateInput) dateInput.valueAsDate = new Date();
 }
 
-// --- 3. AUTOCOMPLETE (SEARCH PRODUCT) ---
-function setupReturAutocomplete() {
+// =========================================================
+// FITUR 1: AUTOCOMPLETE PELANGGAN (MITRA) - REVISED
+// Endpoint: {{baseUrl}}/table/client/{{owner_id}}/1?search=
+// =========================================================
+function setupPelangganAutocomplete() {
+  const input = document.getElementById("returPelangganSearch");
+  const resultsContainer = document.getElementById("returPelangganResults");
+  let debounceTimeout;
+
+  if (!input || !resultsContainer) return;
+
+  input.addEventListener("input", function () {
+    const keyword = this.value.trim();
+    clearTimeout(debounceTimeout);
+
+    if (keyword.length < 1) {
+      resultsContainer.classList.add("hidden");
+      return;
+    }
+
+    debounceTimeout = setTimeout(async () => {
+      // DEBUG: Cek URL di Console
+      const searchUrl = `${baseUrl}/table/client/4427/1?search=${encodeURIComponent(
+        keyword
+      )}`;
+      console.log("🔍 Fetching URL:", searchUrl);
+
+      try {
+        resultsContainer.classList.remove("hidden");
+        resultsContainer.innerHTML =
+          '<div class="p-2 text-sm text-gray-500">Mencari mitra...</div>';
+
+        const response = await fetch(searchUrl, {
+          headers: { Authorization: `Bearer ${API_TOKEN}` },
+        });
+
+        const result = await response.json();
+        console.log("📩 API Response:", result); // Lihat isi result di Console
+
+        // Akses array data (sesuai JSON Anda: result.tableData)
+        const listData = result.tableData || [];
+
+        resultsContainer.innerHTML = "";
+
+        if (listData.length === 0) {
+          resultsContainer.innerHTML =
+            '<div class="p-2 text-sm text-gray-500">Mitra tidak ditemukan.</div>';
+        } else {
+          listData.forEach((item) => {
+            const div = document.createElement("div");
+            div.className =
+              "p-2 hover:bg-purple-50 cursor-pointer border-b text-sm";
+
+            // --- PERBAIKAN MAPPING KEY SESUAI JSON POSTMAN ---
+            // "nama": "MUHAMMAD AKBAR" -> item.nama
+            // "no_membership": "CUS-01752" -> item.no_membership
+            // "alamat": "Kecamatan Ciampea" -> item.alamat
+
+            const displayName = item.nama || item.client_name || "Tanpa Nama";
+            const displayCode = item.no_membership || "-";
+            const displayAddr = item.alamat || "";
+
+            div.innerHTML = `
+                            <div class="font-bold text-gray-800">${displayName}</div>
+                            <div class="text-xs text-gray-500">${displayCode} | ${displayAddr}</div>
+                        `;
+
+            div.addEventListener("click", () => {
+              // --- PERBAIKAN SET VALUE ---
+              // "pelanggan_id": 1752 -> item.pelanggan_id
+
+              document.getElementById("returPelangganId").value =
+                item.pelanggan_id;
+              document.getElementById("returPelangganSearch").value =
+                displayName;
+
+              resultsContainer.classList.add("hidden");
+              console.log("✅ Pelanggan Selected:", item);
+            });
+
+            resultsContainer.appendChild(div);
+          });
+        }
+      } catch (e) {
+        console.error("❌ Error Fetching Client:", e);
+        resultsContainer.innerHTML =
+          '<div class="p-2 text-red-500 text-xs">Gagal memuat data. Cek Console.</div>';
+      }
+    }, 500);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
+      resultsContainer.classList.add("hidden");
+    }
+  });
+}
+
+// =========================================================
+// FITUR 2: AUTOCOMPLETE PRODUK
+// Endpoint: {{baseUrl}}/table/product_werehouse/{{werehouseid}}/1?seach=
+// =========================================================
+function setupProductAutocomplete() {
   const input = document.getElementById("returProductSearch");
-  const resultsContainer = document.getElementById("returSearchResults");
+  const resultsContainer = document.getElementById("returProductResults");
   let debounceTimeout;
 
   if (!input || !resultsContainer) return;
@@ -63,15 +156,14 @@ function setupReturAutocomplete() {
     }
 
     debounceTimeout = setTimeout(async () => {
-      // Search Produk Scope Gudang User
+      // Note: Parameter endpoint pakai 'seach' (typo dari backend)
       const searchUrl = `${baseUrl}/table/product_werehouse/${
         user.werehouse_id
       }/1?seach=${encodeURIComponent(keyword)}`;
-
       try {
-        resultsContainer.innerHTML =
-          '<div class="p-2 text-sm text-gray-500">Mencari...</div>';
         resultsContainer.classList.remove("hidden");
+        resultsContainer.innerHTML =
+          '<div class="p-2 text-sm text-gray-500">Mencari produk...</div>';
 
         const response = await fetch(searchUrl, {
           headers: { Authorization: `Bearer ${API_TOKEN}` },
@@ -82,27 +174,29 @@ function setupReturAutocomplete() {
         resultsContainer.innerHTML = "";
         if (products.length === 0) {
           resultsContainer.innerHTML =
-            '<div class="p-2 text-sm text-gray-500">Tidak ditemukan di gudang ini.</div>';
+            '<div class="p-2 text-sm text-gray-500">Tidak ditemukan.</div>';
         } else {
           products.forEach((item) => {
             const div = document.createElement("div");
             div.className =
               "p-2 hover:bg-purple-50 cursor-pointer border-b text-sm";
             div.innerHTML = `
-                            <div class="font-bold text-gray-700">${
-                              item.product
-                            }</div>
-                            <div class="text-xs text-gray-500">SKU: ${
+                            <strong>${item.product}</strong><br>
+                            <span class="text-xs text-gray-500">SKU: ${
                               item.productcode || "-"
-                            } | Stok: ${item.stock || 0}</div>
+                            } | Stok: ${item.stock || 0}</span>
                         `;
-
             div.addEventListener("click", () => {
+              // Set ID ke Hidden Input
               document.getElementById("returProductWerehouseId").value =
                 item.product_werehouse_id;
-              // document.getElementById('returProductId').value = item.product_id;
+              // Set Nama ke Search Box
               document.getElementById("returProductSearch").value =
                 item.product;
+
+              // Info Stok
+              const stockInfo = document.getElementById("returCurrentStock");
+              if (stockInfo) stockInfo.innerText = item.stock || 0;
 
               document.getElementById("returQty").focus();
               resultsContainer.classList.add("hidden");
@@ -111,174 +205,216 @@ function setupReturAutocomplete() {
           });
         }
       } catch (e) {
-        console.error(e);
         resultsContainer.innerHTML =
-          '<div class="p-2 text-sm text-red-500">Gagal load.</div>';
+          '<div class="p-2 text-red-500">Error load data.</div>';
       }
     }, 500);
   });
 
   document.addEventListener("click", (e) => {
-    if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
+    if (!input.contains(e.target) && !resultsContainer.contains(e.target))
       resultsContainer.classList.add("hidden");
-    }
   });
 }
 
-// --- 4. GENERATE PAYLOAD ---
+// --- 4. GENERATE PAYLOAD (DENGAN WEREHOUSE_ID) ---
 function getReturPayload() {
   const getVal = (id) => {
     const el = document.getElementById(id);
     return el ? el.value.trim() : "";
   };
+
   const getInt = (id) => {
-    const val = getVal(id);
-    return parseInt(val.replace(/\./g, ""), 10) || 0;
+    const val = getVal(id).replace(/\./g, "");
+    const num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
   };
 
-  // Validasi Session
+  // 1. Validasi Session (PENTING)
   if (typeof user === "undefined" || !user.werehouse_id) {
     Swal.fire({
       icon: "error",
-      title: "Error",
-      text: "Sesi Gudang tidak terbaca.",
+      title: "Session Error",
+      text: "ID Gudang (user.werehouse_id) tidak terbaca. Silakan refresh halaman.",
     });
     return null;
   }
 
   const pwId = getVal("returProductWerehouseId");
-  const qty = getInt("returQty");
+  const pelangganId = getVal("returPelangganId");
   const date = getVal("returDate");
-  const condition = getVal("returCondition");
+  const qty = getInt("returQty");
+  let notes = getVal("returNotes");
 
+  // 2. Validasi Input Form
   if (!date) {
     Swal.fire("Warning", "Tanggal wajib diisi.", "warning");
     return null;
   }
+  if (!pelangganId) {
+    Swal.fire("Warning", "Pilih Mitra/Pelanggan dari list.", "warning");
+    return null;
+  }
   if (!pwId) {
-    Swal.fire("Warning", "Pilih produk dulu.", "warning");
+    Swal.fire("Warning", "Pilih Produk dari list.", "warning");
     return null;
   }
   if (qty <= 0) {
-    Swal.fire("Warning", "Qty retur harus > 0.", "warning");
-    return null;
-  }
-  if (!condition) {
-    Swal.fire("Warning", "Pilih kondisi fisik barang.", "warning");
+    Swal.fire("Warning", "Qty retur harus lebih dari 0.", "warning");
     return null;
   }
 
+  if (notes === "") notes = "-";
+
+  // 3. Construct JSON (Request Body)
   const payload = {
-    owner_id: owner_id,
-    werehouse_id: parseInt(user.werehouse_id),
+    owner_id: parseInt(owner_id),
+    werehouse_id: parseInt(user.werehouse_id), // <-- SUDAH DITAMBAHKAN
+    pelanggan_id: parseInt(pelangganId),
     product_werehouse_id: parseInt(pwId),
-
     return_date: date,
-    ref_number: getVal("returRef"),
-    customer_name: getVal("returCustomer"),
     qty: qty,
-    condition: condition, // 'good', 'bad', 'expired'
-    note: getVal("returNotes"),
+    notes: notes,
   };
 
-  console.log("Payload Retur:", payload);
+  console.log("📦 Payload Retur (Fixed):", JSON.stringify(payload));
   return payload;
 }
 
-// --- 5. SUBMIT FUNCTION ---
+// --- 5. SUBMIT FUNCTION (DEBUG MODE) ---
 async function submitRetur(method, id = "") {
   const payload = getReturPayload();
   if (!payload) return;
 
   const endpoint =
     method === "POST" ? "add/product_return" : `update/product_return/${id}`;
-  const url = `${baseUrl}/${endpoint}`;
+
+  // Definisi tombol & text default
+  const btnId = method === "POST" ? "btnSaveRetur" : "btnUpdateRetur";
+  const btn = document.getElementById(btnId);
+  let originalText = "Simpan";
+
+  // Set Loading
+  if (btn) {
+    originalText = btn.innerText;
+    btn.innerText = "Proses...";
+    btn.disabled = true;
+  }
 
   try {
-    const btnId = method === "POST" ? "btnSaveRetur" : "btnUpdateRetur";
-    const btn = document.getElementById(btnId);
-    let originalText = "Simpan";
+    console.log(`🚀 Mengirim ${method} ke: ${baseUrl}/${endpoint}`);
 
-    if (btn) {
-      originalText = btn.innerText;
-      btn.innerText = "Proses...";
-      btn.disabled = true;
-    }
-
-    const response = await fetch(url, {
+    const response = await fetch(`${baseUrl}/${endpoint}`, {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_TOKEN}`,
+        Authorization: `Bearer ${API_TOKEN}`, // Pastikan Token Valid
       },
       body: JSON.stringify(payload),
     });
 
-    const result = await response.json();
+    // Coba baca response text dulu (untuk jaga-jaga jika bukan JSON)
+    const responseText = await response.text();
+    let result = {};
 
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Server return non-JSON:", responseText);
+      throw new Error("Respon server tidak valid (Bukan JSON).");
+    }
+
+    console.log("📩 Server Response:", result);
+
+    // Reset Tombol
     if (btn) {
       btn.innerText = originalText;
       btn.disabled = false;
     }
 
-    if (response.ok) {
+    // --- LOGIKA SUKSES ---
+    // Server Anda mengembalikan 200 OK dengan body: { "data": { "message": "...", "return_id": 1 } }
+    // Tapi kadang error 500 pun mengirim JSON structure serupa. Kita cek return_id.
+
+    if (response.ok || (result.data && result.data.return_id)) {
       Swal.fire({
         icon: "success",
         title: "Berhasil",
-        text: "Data retur tersimpan.",
+        text: result.data?.message || "Data retur berhasil disimpan.",
       }).then(() => {
-        if (method === "POST") {
-          location.reload();
-        } else {
-          loadModuleContent("retur"); // Kembali ke list (folder retur)
-        }
+        loadModuleContent("retur");
       });
     } else {
-      throw new Error(result.message || "Gagal menyimpan data.");
+      // Jika error message dari server ada
+      throw new Error(
+        result.message ||
+          result.data?.message ||
+          "Terjadi kesalahan pada server (500)."
+      );
     }
-  } catch (error) {
-    console.error(error);
-    Swal.fire({ icon: "error", title: "Gagal", text: error.message });
-    const btn = document.getElementById(
-      method === "POST" ? "btnSaveRetur" : "btnUpdateRetur"
-    );
+  } catch (e) {
+    console.error("❌ Submit Error:", e);
+
+    Swal.fire({
+      icon: "error",
+      title: "Gagal",
+      text: e.message,
+    });
+
+    // Kembalikan tombol jika error
     if (btn) {
       btn.disabled = false;
       btn.innerText = originalText;
     }
   }
 }
-
-// --- 6. LOAD DETAIL (EDIT) ---
+// --- 6. LOAD DETAIL (EDIT) - FIX MAPPING ---
 async function loadReturDetail(id) {
   try {
-    const response = await fetch(`${baseUrl}/detail/product_return/${id}`, {
+    const res = await fetch(`${baseUrl}/detail/product_return/${id}`, {
       headers: { Authorization: `Bearer ${API_TOKEN}` },
     });
-    const result = await response.json();
+    const result = await res.json();
     const data = result.detail;
 
-    if (!data) throw new Error("Data detail tidak ditemukan");
+    console.log("📩 Detail Response:", data); // Cek isi data di Console
 
+    if (!data) throw new Error("Data tidak ditemukan");
+
+    // Helper Set Value
     const setVal = (elmId, val) => {
       const el = document.getElementById(elmId);
       if (el) el.value = val;
     };
 
+    // 1. Mapping Data Transaksi
     setVal("returDate", data.return_date);
-    setVal("returRef", data.ref_number || "");
-    setVal("returCustomer", data.customer_name || "");
     setVal("returQty", data.qty);
-    setVal("returCondition", data.condition);
-    setVal("returNotes", data.note || data.notes || "");
 
+    // FIX: Ambil dari 'notes' (jamak), jika kosong string kosong
+    setVal("returNotes", data.notes || data.note || "");
+
+    // 2. Mapping Produk
     setVal("returProductWerehouseId", data.product_werehouse_id);
-    setVal(
-      "returProductSearch",
-      data.product_name || data.product || "Produk Terpilih"
-    );
-  } catch (error) {
-    console.error(error);
-    Swal.fire("Error", "Gagal memuat detail edit", "error");
+    setVal("returProductSearch", data.product || ""); // Key 'product'
+
+    // 3. Mapping Pelanggan (MITRA)
+    // Masalah: JSON Anda TIDAK punya field ini.
+    // Solusi: Kode ini mencoba baca berbagai kemungkinan key.
+    // Jika Backend belum nambah, field ini akan tetap kosong.
+
+    const plgId = data.pelanggan_id || data.client_id || "";
+    const plgName =
+      data.pelanggan_name || data.customer_name || data.client_name || "";
+
+    setVal("returPelangganId", plgId);
+    setVal("returPelangganSearch", plgName);
+
+    if (!plgId) {
+      console.warn("⚠️ Data Pelanggan tidak ditemukan di response API.");
+    }
+  } catch (e) {
+    console.error("Load Detail Error:", e);
+    Swal.fire("Error", "Gagal memuat detail data.", "error");
   }
 }

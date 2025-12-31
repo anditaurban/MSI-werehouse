@@ -5,10 +5,6 @@
             <div>
                 <h1 id="formTitle" class="text-2xl font-bold mb-1">FORM RETUR BARANG</h1>
                 <nav class="text-gray-500 text-sm flex items-center flex-wrap gap-1">
-                    <span>Produk</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
                     <span>Persediaan</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -16,7 +12,6 @@
                     <span class="font-medium">Form Retur Barang</span>
                 </nav>
             </div>
-
             <div class="flex flex-wrap gap-2">
                 <button id="btnSaveRetur" onclick="submitRetur('POST')"
                     class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded">
@@ -26,7 +21,6 @@
                     class="hidden bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">
                     Update Data
                 </button>
-
                 <button onclick="loadModuleContent('retur')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️
                     Kembali</button>
             </div>
@@ -44,44 +38,53 @@
                         <input type="date" id="returDate" class="flex-1 border rounded px-3 py-2">
                     </div>
 
-                    <div class="mb-4 flex items-center">
-                        <label class="w-40 font-medium text-sm">No. Referensi</label>
-                        <input type="text" id="returRef" placeholder="Contoh: INV-001"
-                            class="flex-1 border rounded px-3 py-2">
+                    <div class="mb-4 relative">
+                        <label class="block font-medium mb-1 text-sm">Cari Pelanggan / Mitra <span
+                                class="text-red-500">*</span></label>
+
+                        <input type="hidden" id="returPelangganId">
+                        <div class="relative">
+                            <input type="text" id="returPelangganSearch" placeholder="Ketik nama mitra..."
+                                autocomplete="off"
+                                class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none pl-9">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+
+                            <div id="returPelangganResults"
+                                class="hidden absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto mt-1">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-4 flex items-center">
-                        <label class="w-40 font-medium text-sm">Nama Customer</label>
-                        <input type="text" id="returCustomer" placeholder="Nama Pelanggan / Toko"
-                            class="flex-1 border rounded px-3 py-2">
-                    </div>
-
-                    <div class="mb-4 flex items-center">
-                        <label class="w-40 font-medium text-sm">Gudang Penerima</label>
-                        <input type="text" id="returWarehouseName" readonly
-                            class="flex-1 bg-gray-100 border rounded px-3 py-2 text-gray-500 italic" value="Loading...">
-                    </div>
                 </div>
 
                 <div>
                     <h2 class="text-purple-600 text-lg font-semibold mb-4">Detail Barang</h2>
 
-                    <input type="hidden" id="returProductWerehouseId">
-                    <input type="hidden" id="returProductId">
-
                     <div class="mb-4 relative">
                         <label class="block font-medium mb-1 text-sm">Cari Produk <span
                                 class="text-red-500">*</span></label>
+
+                        <input type="hidden" id="returProductWerehouseId">
                         <div class="relative">
                             <input type="text" id="returProductSearch" placeholder="Ketik nama produk..."
                                 autocomplete="off"
-                                class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none pl-9">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
 
-                            <div id="returSearchResults"
+                            <div id="returProductResults"
                                 class="hidden absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto mt-1">
                             </div>
                         </div>
-                        <small class="text-gray-500">Cari dari gudang saat ini.</small>
+                        <small class="text-gray-500">Stok saat ini: <span id="returCurrentStock"
+                                class="font-bold">-</span></small>
                     </div>
 
                     <div class="mb-4 flex items-center">
@@ -91,19 +94,9 @@
                     </div>
 
                     <div class="mb-4 flex items-center">
-                        <label class="w-40 font-medium text-sm">Kondisi Fisik <span
-                                class="text-red-500">*</span></label>
-                        <select id="returCondition" class="flex-1 border rounded px-3 py-2">
-                            <option value="good">Baik / Layak Jual</option>
-                            <option value="bad">Rusak / Cacat</option>
-                            <option value="expired">Kadaluarsa</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4 flex items-center">
-                        <label class="w-40 font-medium text-sm">Alasan Retur</label>
+                        <label class="w-40 font-medium text-sm">Catatan (Note)</label>
                         <textarea id="returNotes" rows="2" class="flex-1 border rounded px-3 py-2"
-                            placeholder="Alasan pengembalian..."></textarea>
+                            placeholder="Keterangan retur..."></textarea>
                     </div>
 
                 </div>

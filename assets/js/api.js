@@ -69,6 +69,7 @@ const endpointList = [
   "product_bundling",
   "product_inbound",
   "product_outbound",
+  "product_return",
   "client",
   "business_category",
   "employee",
