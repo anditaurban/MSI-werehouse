@@ -28,7 +28,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
 
   <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">Gudang</span>
-    ${item.werehouse_source || "-"}
+    ${item.mitra || "-"}
   </td>
 
   <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
