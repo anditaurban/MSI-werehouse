@@ -187,7 +187,7 @@ function setupProductAutocomplete() {
     }
 
     debounceTimeout = setTimeout(async () => {
-      const searchUrl = `${baseUrl}/table/product_input/${owner_id}/1?seach=${encodeURIComponent(
+      const searchUrl = `${baseUrl}/table/product_input/${owner_id}/1?search=${encodeURIComponent(
         keyword
       )}`;
 
