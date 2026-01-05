@@ -152,7 +152,7 @@ async function validateFullOTP() {
       const response = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: currentUser.phone, otp }),
+        body: JSON.stringify({ otp }),
       });
 
       const result = await response.json();
