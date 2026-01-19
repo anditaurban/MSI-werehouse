@@ -55,7 +55,6 @@
             <h2 class="text-blue-600 text-lg font-semibold mb-4">Informasi Produk</h2>
 
             <input type="hidden" id="formProductId" value="" />
-            <input type="hidden" id="formCategoryId" value="" />
             <div class="mb-4 relative">
               <label class="block font-medium mb-1">Nama Produk <span class="text-red-500">*</span></label>
               <div class="relative">
@@ -72,6 +71,13 @@
             <div class="mb-4">
               <label class="block font-medium mb-1">SKU / Barcode <span class="text-red-500">*</span></label>
               <input type="text" id="formSKU" class="w-full border rounded px-3 py-2" />
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700">Kategori Produk</label>
+              <select id="formCategoryId" class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white">
+                <option value="">Loading...</option>
+              </select>
             </div>
 
             <div class="mb-4">
