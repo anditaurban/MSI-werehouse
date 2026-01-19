@@ -277,14 +277,21 @@ async function updateData() {
   await submitData("PUT", window.detail_id);
 }
 
-// --- FUNGSI AUTOCOMPLETE / PENCARIAN PRODUK ---
 function setupProductAutocomplete() {
   const input = document.getElementById("formProduct");
   const resultsContainer = document.getElementById("productSearchResults");
+  const hiddenId = document.getElementById("formProductId"); // Ambil hidden input ID
   let debounceTimeout;
 
   input.addEventListener("input", function () {
     const keyword = this.value.trim();
+
+    // --- PERUBAHAN DI SINI ---
+    // Setiap kali user mengetik/mengubah teks, reset ID menjadi 0/kosong
+    // Ini menandakan bahwa input saat ini adalah "Teks Manual" bukan "Pilihan Database"
+    hiddenId.value = "";
+    // -------------------------
+
     clearTimeout(debounceTimeout);
 
     if (keyword.length < 2) {
@@ -293,9 +300,8 @@ function setupProductAutocomplete() {
     }
 
     debounceTimeout = setTimeout(async () => {
-      const searchUrl = `${baseUrl}/table/product_input/${owner_id}/1?seach=${encodeURIComponent(
-        keyword,
-      )}`;
+      // ... (Kode fetch pencarian tetap sama) ...
+      const searchUrl = `${baseUrl}/table/product_input/${owner_id}/1?seach=${encodeURIComponent(keyword)}`;
 
       try {
         resultsContainer.innerHTML =
@@ -308,6 +314,7 @@ function setupProductAutocomplete() {
         });
 
         const result = await response.json();
+        // Filter hasil
         const products = (result.tableData || []).filter((item) =>
           item.product?.toLowerCase().includes(keyword.toLowerCase()),
         );
@@ -315,8 +322,9 @@ function setupProductAutocomplete() {
         resultsContainer.innerHTML = "";
 
         if (products.length === 0) {
+          // Opsional: Beri tahu user bahwa ini akan jadi produk baru
           resultsContainer.innerHTML =
-            '<div class="p-2 text-gray-500 text-sm">Produk tidak ditemukan.</div>';
+            '<div class="p-2 text-blue-600 text-sm fst-italic">Produk tidak ditemukan. Input akan disimpan sebagai data baru.</div>';
         } else {
           products.forEach((item) => {
             const div = document.createElement("div");
@@ -341,6 +349,7 @@ function setupProductAutocomplete() {
     }, 500);
   });
 
+  // ... (Event click outside tetap sama) ...
   document.addEventListener("click", (e) => {
     if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
       resultsContainer.classList.add("hidden");
@@ -355,51 +364,62 @@ function getDataPayload() {
     return el ? el.value.trim() : "";
   };
 
-  // Helper Angka (Integer): Hapus titik, cegah NaN
+  // Helper Angka (Integer)
   const getInt = (id) => {
     let val = getVal(id).replace(/\./g, "");
     const parsed = parseInt(val, 10);
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  // Helper Desimal (Float): Ganti koma jadi titik
+  // Helper Desimal (Float)
   const getFloat = (id) => {
     let val = getVal(id).replace(/\./g, "").replace(",", ".");
     const parsed = parseFloat(val);
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  // --- VALIDASI ID WAJIB ---
-  if (!getVal("formProductId")) {
-    Swal.fire("Warning", "Produk belum dipilih", "warning");
+  // --- VALIDASI ID WAJIB DIHAPUS, GANTI VALIDASI NAMA ---
+  // Kita tidak cek formProductId, tapi cek formProduct (Nama textnya)
+  if (!getVal("formProduct")) {
+    Swal.fire("Warning", "Nama Produk wajib diisi", "warning");
     return null;
   }
 
-  // Ambil ID Kategori Bisnis dari Checkbox
+  // Jika kategori wajib dipilih (opsional, sesuaikan kebutuhan)
+  if (!getVal("formCategoryId")) {
+    Swal.fire("Warning", "Kategori wajib dipilih", "warning");
+    return null;
+  }
+
+  // Ambil ID Kategori Bisnis
   const selectedBusinessCategories = getSelectedCategoryIds();
 
-  // Ambil Werehouse ID (Pastikan tidak 0)
-  // Jika variabel global werehouse_id tidak ada/0, gunakan default 1 (atau sesuaikan logika aplikasimu)
+  // Ambil Werehouse ID
   const finalWerehouseId =
     typeof werehouse_id !== "undefined" && werehouse_id > 0 ? werehouse_id : 1;
+
+  // --- LOGIKA PENENTUAN PRODUCT ID ---
+  // Jika hidden ID kosong atau NaN, set jadi 0 (String atau Int sesuai backend)
+  let rawProductId = getVal("formProductId");
+  let finalProductId = rawProductId ? parseInt(rawProductId) : 0;
 
   // --- KONSTRUKSI PAYLOAD LENGKAP ---
   const payload = {
     owner_id: typeof owner_id !== "undefined" ? owner_id : 0,
 
     // IDs
-    product_id: parseInt(getVal("formProductId")),
+    product_id: finalProductId, // Jika manual input, ini akan bernilai 0
     werehouse_id: finalWerehouseId,
-    material_id: parseInt(getVal("formMaterial")),
-    unit_id: parseInt(getVal("formUnit")),
-    category_id: parseInt(getVal("formCategoryId")),
+    material_id: parseInt(getVal("formMaterial")) || 0, // Handle jika kosong
+    unit_id: parseInt(getVal("formUnit")) || 0,
+    category_id: parseInt(getVal("formCategoryId")) || 0,
 
     // Array ID Kategori Bisnis
     business_category_ids: selectedBusinessCategories,
 
     // TEXT DATA
     productcode: getVal("formSKU"),
-    product: getVal("formProduct"), // <--- INI YANG TADI HILANG (Nama Produk)
+    product: getVal("formProduct"), // Nama produk dari input text
     description: getVal("formDescription"),
 
     // NUMBER DATA
@@ -410,7 +430,7 @@ function getDataPayload() {
     weight: getFloat("formBerat"),
   };
 
-  console.log("Payload Final:", payload); // Cek di console browser sebelum kirim
+  console.log("Payload Final:", payload);
   return payload;
 }
 
