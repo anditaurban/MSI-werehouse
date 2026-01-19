@@ -31,11 +31,25 @@
       </div>
     </div>
 
+    <div class="flex gap-2 border-b border-gray-300">
+      <button
+        class="tab-link active-tab text-sm flex items-center gap-2 py-1 px-3 bg-blue-100 hover:bg-blue-200 rounded-t-md text-blue-600 font-semibold"
+        data-tab="produk" onclick="switchTab('produk')">
+        📦 <span class="menu-text hidden md:inline">Informasi Produk</span>
+      </button>
+      <button class="tab-link text-sm flex items-center gap-2 py-1 px-3 hover:bg-blue-200 rounded-t-md text-gray-600"
+        data-tab="harga" onclick="switchTab('harga')">
+        💰 <span class="menu-text hidden md:inline">Harga & Kategori</span>
+      </button>
+    </div>
+
     <!-- Tab Content -->
     <div id="tabContentWrapper" class="pt-4">
 
       <div id="tab-produk" class="tab-content">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+
 
           <div>
             <h2 class="text-blue-600 text-lg font-semibold mb-4">Informasi Produk</h2>
@@ -102,10 +116,18 @@
               </div>
             </div>
 
-            <div class="mb-4">
-              <label class="block font-medium mb-1">Harga Jual</label>
-              <input type="text" id="formPrice" class="w-full border rounded px-3 py-2" />
-              <p id="warnPrice" class="text-red-500 text-sm mt-1 hidden"></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Harga Jual</label>
+                <input type="text" id="formPrice" class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  placeholder="0">
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Harga Grosir (Wholesale)</label>
+                <input type="text" id="formWholesalePrice"
+                  class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="0">
+              </div>
             </div>
 
           </div>
@@ -113,6 +135,23 @@
       </div>
 
       <!-- Tab: Harga & Kategori -->
+      <div id="tab-harga" class="tab-content hidden">
+        <div id="kategoriSection" class="mt-6">
+          <h2 class="text-blue-600 text-lg font-semibold mb-2">Pilih Kategori Bisnis</h2>
+
+          <input type="text" id="searchKategori" placeholder="Cari kategori..."
+            class="border p-2 rounded w-full mb-2" />
+          <div id="selectedCount" class="text-sm text-gray-600 mb-2">0 kategori dipilih</div>
+
+          <form id="kategoriForm">
+            <div id="kategoriList"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto border p-3 rounded bg-gray-50">
+              <!-- Checkbox akan di-generate di sini -->
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div id="tab-harga" class="tab-content hidden">
         <div id="kategoriSection" class="mt-6">
           <h2 class="text-blue-600 text-lg font-semibold mb-2">Pilih Kategori Bisnis</h2>
