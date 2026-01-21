@@ -19,18 +19,23 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <button onclick="createData()" id="addButton" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan</button>
-        <button onclick="updateData()" id="updateButton" class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">Update</button>
+        <button onclick="createData()" id="addButton"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">Simpan</button>
+        <button onclick="updateData()" id="updateButton"
+          class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded">Update</button>
         <button onclick="loadModuleContent('contact')" class="bg-gray-300 text-sm px-4 py-2 rounded">⬅️ Kembali</button>
       </div>
     </div>
 
     <!-- Tab Navigation -->
     <div class="flex gap-2 border-b border-gray-300">
-      <button class="tab-link active-tab text-sm flex items-center gap-2 py-1 px-3 bg-blue-100 hover:bg-blue-200 rounded-t-md text-blue-600 font-semibold" data-tab="data" onclick="switchTab('data')">
+      <button
+        class="tab-link active-tab text-sm flex items-center gap-2 py-1 px-3 bg-blue-100 hover:bg-blue-200 rounded-t-md text-blue-600 font-semibold"
+        data-tab="data" onclick="switchTab('data')">
         ⬇️ <span class="menu-text hidden md:inline">Data Pelanggan</span>
       </button>
-      <button class="tab-link text-sm flex items-center gap-2 py-1 px-3 hover:bg-blue-200 rounded-t-md text-gray-600" data-tab="detail" onclick="switchTab('detail')">
+      <button class="tab-link text-sm flex items-center gap-2 py-1 px-3 hover:bg-blue-200 rounded-t-md text-gray-600"
+        data-tab="detail" onclick="switchTab('detail')">
         ⬆️ <span class="menu-text hidden md:inline">Kemitraan</span>
       </button>
     </div>
@@ -48,7 +53,8 @@
 
             <div class="mb-4 flex items-center">
               <label class="w-40 font-medium">ID Pelanggan</label>
-              <input type="text" id="formID" placeholder="Auto Generated" class="flex-1 border rounded px-3 py-2" readonly />
+              <input type="text" id="formID" placeholder="Auto Generated" class="flex-1 border rounded px-3 py-2"
+                readonly />
             </div>
 
             <div class="mb-4 flex items-center">
@@ -103,7 +109,8 @@
 
             <div class="mb-4 flex items-start">
               <label class="w-40 font-medium mt-2">Alamat</label>
-              <textarea id="formAlamat" rows="3" placeholder="Alamat" class="flex-1 border rounded px-3 py-2"></textarea>
+              <textarea id="formAlamat" rows="3" placeholder="Alamat"
+                class="flex-1 border rounded px-3 py-2"></textarea>
             </div>
 
             <!-- Input Cari Wilayah -->
@@ -111,16 +118,19 @@
               <label class="w-40 font-medium mt-2">Cari Wilayah</label>
               <div class="flex-1">
                 <div class="flex">
-                  <input type="text" id="cityInput" placeholder="Cari Wilayah..." class="w-full border rounded-l px-3 py-2" />
+                  <input type="text" id="cityInput" placeholder="Cari Wilayah..."
+                    class="w-full border rounded-l px-3 py-2" />
                   <span class="bg-gray-100 border border-l-0 px-3 rounded-r text-sm flex items-center">🔎</span>
                 </div>
-                <ul id="resultList" class="absolute z-10 w-full border bg-white mt-1 max-h-60 overflow-y-auto text-sm shadow-md rounded-md hidden"></ul>
+                <ul id="resultList"
+                  class="absolute z-10 w-full border bg-white mt-1 max-h-60 overflow-y-auto text-sm shadow-md rounded-md hidden">
+                </ul>
               </div>
             </div>
 
             <div class="mb-4 flex items-center hidden">
               <label for="formregion_ID" class="w-40 font-medium">Region ID</label>
-              <input type="text" id="formregion_ID" placeholder="ID regional" class="flex-1 border rounded px-3 py-2"/>
+              <input type="text" id="formregion_ID" placeholder="ID regional" class="flex-1 border rounded px-3 py-2" />
             </div>
 
             <div class="mb-4 flex items-center">
@@ -130,17 +140,17 @@
 
             <div class="mb-4 flex items-center">
               <label for="formKecamatan" class="w-40 font-medium">Kecamatan</label>
-              <input type="text" id="formKecamatan" placeholder="Kecamatan" class="flex-1 border rounded px-3 py-2"/>
+              <input type="text" id="formKecamatan" placeholder="Kecamatan" class="flex-1 border rounded px-3 py-2" />
             </div>
 
             <div class="mb-4 flex items-center">
               <label for="formKota" class="w-40 font-medium">Kota/Kabupaten</label>
-              <input type="text" id="formKota" placeholder="Kota/Kabupaten" class="flex-1 border rounded px-3 py-2"/>
+              <input type="text" id="formKota" placeholder="Kota/Kabupaten" class="flex-1 border rounded px-3 py-2" />
             </div>
 
             <div class="mb-4 flex items-center">
               <label for="formProvinsi" class="w-40 font-medium">Provinsi</label>
-              <input type="text" id="formProvinsi" placeholder="Provinsi" class="flex-1 border rounded px-3 py-2"/>
+              <input type="text" id="formProvinsi" placeholder="Provinsi" class="flex-1 border rounded px-3 py-2" />
             </div>
 
             <div class="mb-4 flex items-center">
@@ -155,11 +165,13 @@
       <div id="tab-detail" class="tab-content hidden">
         <div id="kategoriSection" class="mt-6">
           <h2 class="text-blue-600 text-lg font-semibold mb-2">Pilih Kategori Bisnis</h2>
-          <input type="text" id="searchKategori" placeholder="Cari kategori..." class="border p-2 rounded w-full mb-2" />
+          <input type="text" id="searchKategori" placeholder="Cari kategori..."
+            class="border p-2 rounded w-full mb-2" />
           <div id="selectedCount" class="text-sm text-gray-600 mb-2">0 kategori dipilih</div>
 
           <form id="kategoriForm">
-            <div id="kategoriList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto border p-3 rounded bg-gray-50">
+            <div id="kategoriList"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto border p-3 rounded bg-gray-50">
               <!-- Checkbox kategori akan ditambahkan di sini -->
             </div>
           </form>
