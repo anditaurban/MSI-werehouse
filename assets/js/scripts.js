@@ -3,7 +3,7 @@ const company = JSON.parse(localStorage.getItem("company") || "{}");
 
 const owner_id = user.owner_id;
 const user_id = user.user_id;
-const werehouse_id = user.werehouse_id;
+const warehouse_id = user.warehouse_id;
 const status_active = user.status_active;
 const level = user.type || user.level;
 const username = user.name || user.username;

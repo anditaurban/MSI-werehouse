@@ -28,7 +28,7 @@ if (window.detail_id) {
   if (dateInput) dateInput.valueAsDate = new Date();
 }
 
-// --- 1. SETUP AUTOCOMPLETE (SEARCH PRODUCT WEREHOUSE) ---
+// --- 1. SETUP AUTOCOMPLETE (SEARCH PRODUCT warehouse) ---
 function setupInboundAutocomplete() {
   const input = document.getElementById("inboundProductSearch");
   const resultsContainer = document.getElementById("inboundSearchResults");
@@ -37,8 +37,8 @@ function setupInboundAutocomplete() {
   if (!input || !resultsContainer) return;
 
   // Cek Session Warehouse Dulu
-  if (typeof werehouse_id === "undefined" || !werehouse_id) {
-    console.error("Werehouse ID session tidak ditemukan.");
+  if (typeof warehouse_id === "undefined" || !warehouse_id) {
+    console.error("warehouse ID session tidak ditemukan.");
     input.placeholder = "Error: Sesi Gudang Hilang";
     input.disabled = true;
     return;
@@ -54,10 +54,10 @@ function setupInboundAutocomplete() {
     }
 
     debounceTimeout = setTimeout(async () => {
-      // URL SEARCH BARU (Menggunakan werehouse_id session)
-      // Pattern: {{baseUrl}}/table/product_werehouse/{{werehouseid}}/1?seach=
-      const searchUrl = `${baseUrl}/table/product_werehouse/${werehouse_id}/1?seach=${encodeURIComponent(
-        keyword
+      // URL SEARCH BARU (Menggunakan warehouse_id session)
+      // Pattern: {{baseUrl}}/table/product_warehouse/{{warehouseid}}/1?seach=
+      const searchUrl = `${baseUrl}/table/product_warehouse/${warehouse_id}/1?seach=${encodeURIComponent(
+        keyword,
       )}`;
 
       try {
@@ -70,7 +70,7 @@ function setupInboundAutocomplete() {
         });
         const result = await response.json();
         const products = (result.tableData || []).filter((item) =>
-          item.product?.toLowerCase().includes(keyword.toLowerCase())
+          item.product?.toLowerCase().includes(keyword.toLowerCase()),
         );
 
         resultsContainer.innerHTML = "";
@@ -92,8 +92,8 @@ function setupInboundAutocomplete() {
 
             div.addEventListener("click", () => {
               // Set Values saat diklik
-              document.getElementById("inboundProductWerehouseId").value =
-                item.product_werehouse_id;
+              document.getElementById("inboundProductwarehouseId").value =
+                item.product_warehouse_id;
               document.getElementById("inboundProductId").value =
                 item.product_id;
 
@@ -132,8 +132,8 @@ function selectInboundProduct(item) {
   console.log("Inbound Product Selected:", item);
 
   // Set Hidden IDs
-  document.getElementById("inboundProductWerehouseId").value =
-    item.product_werehouse_id;
+  document.getElementById("inboundProductwarehouseId").value =
+    item.product_warehouse_id;
   document.getElementById("inboundProductId").value = item.product_id;
 
   // Set Tampilan Input
@@ -211,17 +211,17 @@ function getInboundPayload() {
   };
 
   // Cek Session
-  if (typeof werehouse_id === "undefined" || !werehouse_id) {
+  if (typeof warehouse_id === "undefined" || !warehouse_id) {
     Swal.fire({
       icon: "error",
       title: "Session Error",
-      text: "Werehouse ID tidak ditemukan dalam sesi login.",
+      text: "warehouse ID tidak ditemukan dalam sesi login.",
     });
     return null;
   }
 
   // Validasi Field
-  const pwId = getVal("inboundProductWerehouseId");
+  const pwId = getVal("inboundProductwarehouseId");
   const qty = getInt("inboundQty");
   const date = getVal("inboundDate");
 
@@ -253,8 +253,8 @@ function getInboundPayload() {
   // Construct JSON
   const payload = {
     owner_id: user.owner_id,
-    werehouse_id: user.werehouse_id, // Menggunakan Session Variable
-    product_werehouse_id: parseInt(pwId),
+    warehouse_id: user.warehouse_id, // Menggunakan Session Variable
+    product_warehouse_id: parseInt(pwId),
     // product_id: parseInt(getVal('inboundProductId')), // Opsional, tergantung endpoint butuh atau tidak
 
     inbound_date: date,
@@ -325,7 +325,7 @@ async function submitInbound(method, id = "") {
     Swal.fire({ icon: "error", title: "Gagal", text: error.message });
 
     const btn = document.getElementById(
-      method === "POST" ? "btnSaveInbound" : "btnUpdateInbound"
+      method === "POST" ? "btnSaveInbound" : "btnUpdateInbound",
     );
     if (btn) {
       btn.disabled = false;
@@ -369,7 +369,7 @@ async function loadInboundDetail(id) {
     setVal("inboundPrice", (data.purchase_price || 0).toLocaleString("id-ID"));
 
     // 3. Mapping Produk
-    setVal("inboundProductWerehouseId", data.product_werehouse_id);
+    setVal("inboundProductwarehouseId", data.product_warehouse_id);
 
     // Nama produk untuk ditampilkan di kolom search
     setVal("inboundProductSearch", data.product || "");

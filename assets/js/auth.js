@@ -186,9 +186,9 @@ async function validateFullOTP() {
           company_address: result.company_address,
           company_phone: result.company_phone,
           logo_url: result.logo_url,
-          werehouse_id: result.werehouse_id,
-          werehouse_name: result.werehouse,
-          werehouse_address: result.werehouse_address,
+          warehouse_id: result.warehouse_id,
+          warehouse_name: result.warehouse,
+          warehouse_address: result.warehouse_address,
           // Tambahkan field lain jika perlu
         };
         localStorage.setItem("company", JSON.stringify(companyData));

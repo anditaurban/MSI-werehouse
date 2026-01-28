@@ -1,6 +1,6 @@
 pagemodule = "Product";
 colSpanCount = 7;
-setDataType("product_werehouse");
+setDataType("product_warehouse");
 fetchAndUpdateData();
 
 window.rowTemplate = function (item, index, perPage = 10) {
@@ -79,7 +79,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
 
         <button
           onclick="event.stopPropagation(); loadModuleContent('product_form', '${
-            item.product_werehouse_id
+            item.product_warehouse_id
           }', '${(item.product || "").replace(/'/g, "\\'")}');"
           class="block w-full text-left px-4 py-2 hover:bg-gray-100">
           ✏️ Edit Product
@@ -87,13 +87,13 @@ window.rowTemplate = function (item, index, perPage = 10) {
 
         ${
           item.status === "Active"
-            ? `<button onclick="toggleProductStatus('${item.product_werehouse_id}', '2')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">🔴 Inactivate Product</button>`
-            : `<button onclick="toggleProductStatus('${item.product_werehouse_id}', '1')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">🟢 Activate Product</button>`
+            ? `<button onclick="toggleProductStatus('${item.product_warehouse_id}', '2')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">🔴 Inactivate Product</button>`
+            : `<button onclick="toggleProductStatus('${item.product_warehouse_id}', '1')" class="block w-full text-left px-4 py-2 hover:bg-gray-100">🟢 Activate Product</button>`
         }
 
         <button
           onclick="event.stopPropagation(); handleDelete(${
-            item.product_werehouse_id
+            item.product_warehouse_id
           })"
           class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
           🗑 Delete Product

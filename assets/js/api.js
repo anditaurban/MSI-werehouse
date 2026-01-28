@@ -1,7 +1,7 @@
 const isLocalhost = [
   "localhost",
   "127.0.0.1",
-  "msi-werehouse.vercel.app",
+  "msi-warehouse.vercel.app",
 ].includes(window.location.hostname);
 
 const mode = isLocalhost ? "development" : "production";
@@ -70,16 +70,16 @@ const endpointList = [
   "product_inbound",
   "product_outbound",
   "product_return",
-  "client_werehouse",
+  "client_warehouse",
 
   "business_category",
   "employee",
   "product_unit",
   "product_status",
-  "product_werehouse",
+  "product_warehouse",
   "product_mutation",
-  "werehouse",
-  "werehouse_pic",
+  "warehouse",
+  "warehouse_pic",
   "finance_account_payment",
   "product_category",
   "level",
@@ -87,7 +87,7 @@ const endpointList = [
   "client",
 ];
 
-const useOwnerIdTypes = ["contact", "client"];
+const useOwnerIdTypes = ["contact"];
 
 // generate state otomatis
 const state = endpointList.reduce((acc, type) => {
@@ -98,10 +98,10 @@ const state = endpointList.reduce((acc, type) => {
 // generate endpoints otomatis
 const endpoints = endpointList.reduce((acc, type) => {
   // Cek apakah 'type' saat ini ada di dalam daftar useOwnerIdTypes
-  const idToUse = useOwnerIdTypes.includes(type) ? owner_id : werehouse_id;
+  const idToUse = useOwnerIdTypes.includes(type) ? owner_id : warehouse_id;
 
   acc[type] = {
-    // Logic: Jika ada di list pengecualian pakai owner_id, jika tidak pakai werehouse_id
+    // Logic: Jika ada di list pengecualian pakai owner_id, jika tidak pakai warehouse_id
     table: `${baseUrl}/table/${type}/${idToUse}`,
 
     list: `${baseUrl}/list/${type}/${idToUse}`,
@@ -118,7 +118,7 @@ async function checkApiStatus() {
   const statusEl = document.getElementById("apiIndicator");
   const textEl = document.getElementById("apiIndicatorText");
   try {
-    const res = await fetch(`${baseUrl}/detail/werehouse_pic/${user_id}`, {
+    const res = await fetch(`${baseUrl}/detail/warehouse_pic/${user_id}`, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
       },
