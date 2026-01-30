@@ -141,23 +141,40 @@ document.addEventListener("click", (e) => {
 });
 
 async function loadBadge() {
+  // 1. Ambil data 'user' dari localStorage untuk mendapatkan warehouse_id
+  const userData = localStorage.getItem("user");
+  const userObj = userData ? JSON.parse(userData) : null;
+  const warehouse_id = userObj?.warehouse_id;
+
+  if (!warehouse_id) {
+    console.error("ID Gudang tidak ditemukan dalam session.");
+    return;
+  }
+
   const badgeConfigs = [
-    { id: "salesQtyBadge", endpoint: "counting/sales_pending" },
-    { id: "receiptQtyBadge", endpoint: "counting/sales_receipt_unvalid" },
-    { id: "packageQtyBadge", endpoint: "counting/sales_package_unpack" },
-    { id: "shipmentQtyBadge", endpoint: "counting/sales_package_unshipped" },
+    { id: "salesQtyBadge", endpoint: `counting/sales_pending/${owner_id}` },
+    {
+      id: "receiptQtyBadge",
+      endpoint: `counting/sales_receipt_unvalid/${owner_id}`,
+    },
+    // Menggunakan warehouse_id untuk packing dan shipment
+    {
+      id: "packageQtyBadge",
+      endpoint: `counting/warehouse_package_unpack/${warehouse_id}`,
+    },
+    {
+      id: "shipmentQtyBadge",
+      endpoint: `counting/warehouse_package_unshipped/${warehouse_id}`,
+    },
   ];
 
   for (const config of badgeConfigs) {
     try {
-      const response = await fetch(
-        `${baseUrl}/${config.endpoint}/${owner_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${API_TOKEN}`,
-          },
+      const response = await fetch(`${baseUrl}/${config.endpoint}`, {
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
         },
-      );
+      });
 
       const data = await response.json();
       const total = data?.countData?.total || 0;

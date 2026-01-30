@@ -199,7 +199,7 @@ async function updatePackageStatus(package_id) {
 async function printPackingList(package_id) {
   try {
     const response = await fetch(
-      `${baseUrl}/detail/sales_package/${package_id}`,
+      `${baseUrl}/detail/sales_package_warehouse/${package_id}`,
       {
         method: "GET",
         headers: {
@@ -269,8 +269,28 @@ function printPDFPackage(package_id) {
 
 async function printBulkPackingList() {
   try {
+    // 1. Ambil data 'user' dari localStorage untuk mendapatkan warehouse_id
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      Swal.fire(
+        "Gagal",
+        "Session tidak ditemukan. Silakan login ulang.",
+        "error",
+      );
+      return;
+    }
+
+    const userObj = JSON.parse(userData);
+    const warehouse_id = userObj.warehouse_id;
+
+    if (!warehouse_id) {
+      Swal.fire("Gagal", "ID Gudang tidak ditemukan dalam session.", "error");
+      return;
+    }
+
+    // 2. Fetch data menggunakan endpoint warehouse_package_unpack
     const res = await fetch(
-      `${baseUrl}/counting/sales_package_unpack/${owner_id}`,
+      `${baseUrl}/counting/warehouse_package_unpack/${warehouse_id}`,
       {
         headers: {
           Authorization: `Bearer ${API_TOKEN}`,
@@ -279,12 +299,13 @@ async function printBulkPackingList() {
     );
 
     const result = await res.json();
+    // Mengambil package_ids dari countData sesuai struktur API Anda
     const ids = result?.countData?.package_ids;
 
     if (!ids || ids.length === 0) {
       return Swal.fire(
         "Tidak Ada Data",
-        "Semua paket sudah diproses atau tidak ditemukan.",
+        "Semua paket di gudang ini sudah diproses atau tidak ditemukan.",
         "info",
       );
     }
@@ -292,17 +313,18 @@ async function printBulkPackingList() {
     const idString = ids.join(",");
     const url = `packing_list_combined.html?ids=${idString}`;
 
-    // Pilih metode cetak
+    // 3. Popup Pilihan Metode Cetak
     Swal.fire({
-      title: "Cetak Packing List",
-      text: "Pilih metode pencetakan:",
+      title: "Cetak Bulk Packing List",
+      text: `Ditemukan ${ids.length} paket. Pilih metode pencetakan:`,
+      icon: "question",
       showCancelButton: true,
       confirmButtonText: "Download PDF",
       cancelButtonText: "Print (Langsung)",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        // === Download PDF (gunakan iframe tersembunyi) ===
+        // === Download PDF via hidden iframe ===
         Swal.fire({
           title: "Menyiapkan PDF...",
           html: "Silakan tunggu, file akan diunduh otomatis.",
@@ -313,19 +335,20 @@ async function printBulkPackingList() {
 
             const iframe = document.createElement("iframe");
             iframe.src = url + "&mode=download";
-            iframe.style.width = "0";
-            iframe.style.height = "0";
-            iframe.style.border = "none";
+            iframe.style.display = "none";
             document.body.appendChild(iframe);
 
+            // Beri waktu iframe untuk memicu download sebelum ditutup
             setTimeout(() => {
               Swal.close();
               Swal.fire("Selesai", "PDF berhasil diunduh.", "success");
+              // Bersihkan iframe setelah selesai
+              document.body.removeChild(iframe);
             }, 3000);
           },
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        // === Buka halaman print langsung ===
+        // === Buka tab baru untuk print langsung ===
         window.open(url, "_blank");
       }
     });

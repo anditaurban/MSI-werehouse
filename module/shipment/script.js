@@ -270,9 +270,28 @@ async function showShipmentUpdateForm(
   courier_note = null,
 ) {
   try {
+    // 1. Ambil data 'user' dari localStorage untuk mendapatkan warehouse_id
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      Swal.fire(
+        "Gagal",
+        "Session tidak ditemukan. Silakan login ulang.",
+        "error",
+      );
+      return;
+    }
+
+    const userObj = JSON.parse(userData);
+    const warehouse_id = userObj.warehouse_id;
+
+    if (!warehouse_id) {
+      Swal.fire("Gagal", "ID Gudang tidak ditemukan dalam session.", "error");
+      return;
+    }
+
     let shipmentList = [];
 
-    // Ambil daftar kurir dari API
+    // 2. Ambil daftar kurir tetap menggunakan owner_id (karena kurir biasanya scope perusahaan)
     const courierRes = await fetch(`${baseUrl}/list/courier/${owner_id}`, {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
@@ -281,7 +300,9 @@ async function showShipmentUpdateForm(
     const courierJson = await courierRes.json();
     const couriers = courierJson?.listData || [];
 
+    // 3. Logika penentuan shipmentList
     if (shipment_id && no_inv && no_package) {
+      // Jika dipanggil untuk satu baris (single update)
       shipmentList.push({
         shipment_id,
         no_package,
@@ -292,8 +313,9 @@ async function showShipmentUpdateForm(
         date: new Date().toISOString().split("T")[0],
       });
     } else {
+      // Jika Bulk Update, gunakan endpoint warehouse_package_unshipped
       const res = await fetch(
-        `${baseUrl}/counting/sales_package_unshipped/${owner_id}`,
+        `${baseUrl}/counting/warehouse_package_unshipped/${warehouse_id}`,
         {
           headers: {
             Authorization: `Bearer ${API_TOKEN}`,
@@ -310,7 +332,7 @@ async function showShipmentUpdateForm(
       ) {
         return Swal.fire(
           "Info",
-          "Tidak ada shipment yang perlu diupdate.",
+          "Tidak ada shipment yang perlu diupdate di gudang ini.",
           "info",
         );
       }
@@ -326,9 +348,8 @@ async function showShipmentUpdateForm(
       }));
     }
 
-    // Generate form HTML
+    // --- Generate form HTML (Tetap sama) ---
     let formHtml = `<form id="dataform" class="space-y-4 text-left text-sm text-gray-700 dark:text-gray-200">`;
-
     shipmentList.forEach((s, i) => {
       const courierOptions = couriers
         .map((c) => {
@@ -338,35 +359,24 @@ async function showShipmentUpdateForm(
         .join("");
 
       formHtml += `
-        <div class="border border-gray-300 dark:border-gray-600 p-3 rounded-md">
+        <div class="border border-gray-300 dark:border-gray-600 p-3 rounded-md mb-4">
           <div class="mb-2 font-medium">Shipment ID ${s.shipment_id}</div>
           <div class="text-xs text-gray-500 mb-2">
             Paket: <strong>${s.no_package}</strong><br />
             Invoice: <strong>${s.no_inv}</strong>
           </div>
-
-          <!-- Kurir -->
-          <label for="courier_${i}" class="block mb-1">Kurir</label>
-          <select id="courier_${i}" class="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-white">
+          <label class="block mb-1">Kurir</label>
+          <select id="courier_${i}" class="form-control w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white">
             <option value="">-- Pilih Kurir --</option>
             ${courierOptions}
           </select>
-
-          <!-- Catatan Kurir -->
-          <label for="note_${i}" class="block mt-3 mb-1">Catatan Kurir</label>
-          <input id="note_${i}" type="text" placeholder="Contoh: Taruh di pos satpam"
-            value="${s.courier_note || ""}"
-            class="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-white" />
-
-          <!-- Nomor Resi -->
-          <label for="resi_${i}" class="block mt-3 mb-1">Nomor Resi</label>
-          <input id="resi_${i}" type="text" placeholder="No. Resi"
-            value="${s.shipment_receipt || ""}"
-            class="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-white" />
+          <label class="block mt-3 mb-1">Catatan Kurir</label>
+          <input id="note_${i}" type="text" value="${s.courier_note || ""}" class="form-control w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white" />
+          <label class="block mt-3 mb-1">Nomor Resi</label>
+          <input id="resi_${i}" type="text" value="${s.shipment_receipt || ""}" class="form-control w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white" />
         </div>
       `;
     });
-
     formHtml += `</form>`;
 
     const { isConfirmed } = await Swal.fire({
@@ -389,12 +399,10 @@ async function showShipmentUpdateForm(
       },
     });
 
-    console.log(shipmentList);
-
     if (isConfirmed) {
       updateBulkShipment(
         shipmentList.map((s) => ({
-          user_id: owner_id,
+          user_id: user_id, // Gunakan user_id session untuk audit log
           courier_id: s.courier_id,
           courier_note: s.courier_note,
           shipment_receipt: s.shipment_receipt,
