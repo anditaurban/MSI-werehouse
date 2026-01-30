@@ -1,6 +1,6 @@
 pagemodule = "Package";
 colSpanCount = 9;
-setDataType("sales_package");
+setDataType("sales_package_warehouse");
 fetchAndUpdateData();
 
 window.rowTemplate = function (item, index, perPage = 10) {
@@ -54,7 +54,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
     <td class="px-6 py-4 text-sm text-gray-700 flex justify-between sm:table-cell">
       <span class="font-medium sm:hidden">Status</span>
       <span class="${getStatusClass(
-        item.status_id
+        item.status_id,
       )}  px-2 py-1 rounded-full text-xs font-medium">
         ${item.status}
       </span>      
@@ -64,15 +64,11 @@ ${
   ![2, 4].includes(item.status_id)
     ? `    
     <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
-   ${
-     item.status_id === 1
-       ? `
+   
       <button onclick="event.stopPropagation(); updatePackageStatus('${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         📦 Process Packing
       </button>
-      `
-       : ""
-   }
+      
       ${
         item.pic_name && item.pic_name !== "null"
           ? `
@@ -106,75 +102,90 @@ ${
 
 async function updatePackageStatus(package_id) {
   try {
-    // ambil data packageman
+    // 1. Ambil data packageman untuk dropdown
     const resPackageman = await fetch(
       `${baseUrl}/list/packageman/${owner_id}`,
       {
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-        },
-      }
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      },
     );
     const dataPackageman = await resPackageman.json();
 
-    if (!dataPackageman.listData || dataPackageman.listData.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Tidak ada data",
-        text: "Data packageman belum tersedia.",
-      });
-      return;
-    }
+    // 2. Ambil data detail untuk mendapatkan list items original
+    const resDetail = await fetch(
+      `${baseUrl}/detail/sales_package_warehouse/${package_id}`,
+      {
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      },
+    );
+    const resultDetail = await resDetail.json();
+    const detailData = resultDetail.detail;
 
-    // mapping ke format { value: 'nama', text: 'nama (role)' }
+    // Mapping opsi untuk SweetAlert (menggunakan Nama sesuai JSON terbaru kamu)
     const options = {};
     dataPackageman.listData.forEach((pm) => {
-      options[pm.packageman_id] = `${pm.name} (${pm.role})`;
+      options[pm.name] = `${pm.name} (${pm.role})`;
     });
 
-    // tampilkan swal dengan select
-    const { value: packageman_id } = await Swal.fire({
+    // 3. Tampilkan SweetAlert untuk pilih PIC
+    const { value: selectedName } = await Swal.fire({
       title: "Pilih PIC",
       input: "select",
       inputOptions: options,
       inputPlaceholder: "Pilih karyawan",
       showCancelButton: true,
       confirmButtonText: "Update Status",
-      inputValidator: (value) => {
-        if (!value) {
-          return "PIC wajib dipilih!";
-        }
-      },
+      inputValidator: (value) => !value && "PIC wajib dipilih!",
     });
 
-    if (!packageman_id) return;
+    if (!selectedName) return;
 
-    // kirim update
+    // 4. Mapping items ke format sales_package_detail sesuai kebutuhan API Update
+    const salesPackageDetail = detailData.items.map((item) => ({
+      product_id: parseInt(item.product_id),
+      qty: parseInt(item.qty),
+      package_group: item.package_group || "",
+      item_detail: (item.item_detail || []).map((id) => ({
+        item_id: parseInt(id.item_id),
+        qty: parseInt(id.qty),
+        package_group: id.package_group || "",
+      })),
+    }));
+
+    // 5. Susun Payload
+    const payload = {
+      packageman_warehouse: selectedName, // "Ujang"
+      sales_package_detail: salesPackageDetail,
+    };
+
+    // 6. Eksekusi Update
     const res = await fetch(
-      `${baseUrl}/update/sales_package_status/${package_id}`,
+      `${baseUrl}/update/sales_package_warehouse/${package_id}`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_TOKEN}`,
         },
-        body: JSON.stringify({
-          packageman_id,
-          status_id: 5,
-        }),
-      }
+        body: JSON.stringify(payload),
+      },
     );
 
     const result = await res.json();
+
     if (res.ok) {
+      // Mengambil pesan dari result.data.message sesuai SS kamu
+      const successMsg = result.data?.message || "Data successfully updated";
+
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
-        text: "Status paket berhasil diperbarui.",
+        text: successMsg,
       });
-      fetchAndUpdateData();
+
+      if (typeof fetchAndUpdateData === "function") fetchAndUpdateData();
     } else {
-      throw new Error(result.message || "Gagal memperbarui status.");
+      throw new Error(result.message || "Gagal memperbarui data.");
     }
   } catch (error) {
     Swal.fire({
@@ -194,7 +205,7 @@ async function printPackingList(package_id) {
         headers: {
           Authorization: `Bearer ${API_TOKEN}`,
         },
-      }
+      },
     );
 
     const result = await response.json();
@@ -252,7 +263,7 @@ async function printPackingList(package_id) {
 function printPDFPackage(package_id) {
   const printWindow = window.open(
     `print_packing_list.html?ids==${package_id}`,
-    "_blank"
+    "_blank",
   );
 }
 
@@ -264,7 +275,7 @@ async function printBulkPackingList() {
         headers: {
           Authorization: `Bearer ${API_TOKEN}`,
         },
-      }
+      },
     );
 
     const result = await res.json();
@@ -274,7 +285,7 @@ async function printBulkPackingList() {
       return Swal.fire(
         "Tidak Ada Data",
         "Semua paket sudah diproses atau tidak ditemukan.",
-        "info"
+        "info",
       );
     }
 
@@ -326,37 +337,62 @@ async function printBulkPackingList() {
 
 async function addShipment(package_id) {
   try {
+    // 1. Ambil data 'user' dari localStorage
+    const userData = localStorage.getItem("user");
+
+    if (!userData) {
+      Swal.fire(
+        "Gagal",
+        "Session tidak ditemukan. Silakan login ulang.",
+        "error",
+      );
+      return;
+    }
+
+    // 2. Parse JSON dan ambil warehouse_id
+    const userObj = JSON.parse(userData);
+    const warehouse_id = userObj.warehouse_id;
+
+    if (!warehouse_id) {
+      Swal.fire("Gagal", "ID Gudang tidak ditemukan dalam session.", "error");
+      return;
+    }
+
+    // 3. Eksekusi PUT request sesuai endpoint di gambar Postman
     const response = await fetch(
-      `${baseUrl}/update/sales_package_status/${package_id}`,
+      `${baseUrl}/update/process_shipping_warehouse/${package_id}`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_TOKEN}`,
         },
-        body: JSON.stringify({ status_id: 2, user_id: user_id }),
-      }
+        body: JSON.stringify({
+          warehouse_id: parseInt(warehouse_id),
+        }),
+      },
     );
 
     const result = await response.json();
-    const data = result?.data;
 
-    if (response.ok && data?.success) {
+    // 4. Handle response sesuai format: { "data": { "success": true, ... } }
+    if (response.ok && result?.data?.success) {
       Swal.fire({
         icon: "success",
         title: "Berhasil",
-        text: `Paket berhasil diubah menjadi shipment.\nNomor: ${data.no_shipment}`,
+        text: result.data.message || "Data successfully updated",
       });
-      fetchAndUpdateData();
-      return data;
+      fetchAndUpdateData(); // Refresh tabel
     } else {
-      throw new Error(data?.message || "Gagal memperbarui status");
+      throw new Error(
+        result?.data?.message || "Gagal memperbarui status pengiriman.",
+      );
     }
   } catch (err) {
     Swal.fire({
       icon: "error",
       title: "Gagal",
-      text: err.message || "Terjadi kesalahan saat menghubungi server",
+      text: err.message,
     });
   }
 }
