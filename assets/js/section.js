@@ -141,15 +141,12 @@ document.addEventListener("click", (e) => {
 });
 
 async function loadBadge() {
-  // 1. Ambil data 'user' dari localStorage untuk mendapatkan warehouse_id
   const userData = localStorage.getItem("user");
   const userObj = userData ? JSON.parse(userData) : null;
   const warehouse_id = userObj?.warehouse_id;
+  const owner_id = userObj?.owner_id; // Pastikan owner_id juga diambil
 
-  if (!warehouse_id) {
-    console.error("ID Gudang tidak ditemukan dalam session.");
-    return;
-  }
+  if (!warehouse_id) return;
 
   const badgeConfigs = [
     { id: "salesQtyBadge", endpoint: `counting/sales_pending/${owner_id}` },
@@ -157,7 +154,6 @@ async function loadBadge() {
       id: "receiptQtyBadge",
       endpoint: `counting/sales_receipt_unvalid/${owner_id}`,
     },
-    // Menggunakan warehouse_id untuk packing dan shipment
     {
       id: "packageQtyBadge",
       endpoint: `counting/warehouse_package_unpack/${warehouse_id}`,
@@ -171,21 +167,27 @@ async function loadBadge() {
   for (const config of badgeConfigs) {
     try {
       const response = await fetch(`${baseUrl}/${config.endpoint}`, {
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-        },
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
       });
 
       const data = await response.json();
-      const total = data?.countData?.total || 0;
+      // Paksa menjadi angka untuk memastikan validasi > 0 benar
+      const total = Number(data?.countData?.total || 0);
 
       const badge = document.getElementById(config.id);
       if (badge) {
-        badge.textContent = total;
-        badge.style.display = total > 0 ? "inline-block" : "none";
+        if (total > 0) {
+          badge.textContent = total;
+          badge.style.setProperty("display", "inline-block", "important");
+        } else {
+          // Jika 0 atau null, sembunyikan total
+          badge.style.setProperty("display", "none", "important");
+        }
       }
     } catch (error) {
-      console.error(`Gagal memuat data untuk ${config.id}:`, error);
+      console.error(`Error pada ${config.id}:`, error);
+      // Sembunyikan badge jika terjadi error koneksi agar tidak muncul angka 0 palsu
+      document.getElementById(config.id).style.display = "none";
     }
   }
 }

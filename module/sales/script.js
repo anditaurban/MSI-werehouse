@@ -167,7 +167,7 @@ function loadDropdownCall() {
   
     <td class="px-6 py-4 text-center text-sm text-gray-700 flex justify-between sm:table-cell">
       <span class="font-medium sm:hidden">Status</span>
-      <span class="${getStatusClass(item.status_id)}  px-2 py-1 rounded-full text-xs font-medium">
+      <span class="${StatusClass(item.status_id)}  px-2 py-1 rounded-full text-xs font-medium">
         ${item.status}
       </span>
       <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
