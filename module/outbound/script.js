@@ -31,10 +31,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
     <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
        <button onclick="event.stopPropagation(); loadModuleContent('outbound_form', '${
          item.outbound_id
-       }', '${item.product.replace(
-    /'/g,
-    "\\'"
-  )}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+       }');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         ✏️ Edit Produk Keluar
       </button>
         <button onclick="event.stopPropagation(); handleDelete(${
@@ -143,7 +140,7 @@ function importData() {
 function handleFileRead(file) {
   if (typeof XLSX === "undefined") {
     return showErrorAlert(
-      "Library XLSX tidak ditemukan. Pastikan sudah di-include."
+      "Library XLSX tidak ditemukan. Pastikan sudah di-include.",
     );
   }
 
@@ -218,7 +215,7 @@ function startImport(data) {
           console.warn(
             `Baris ${
               current + 1
-            }: Format business_category_ids tidak valid, default []`
+            }: Format business_category_ids tidak valid, default []`,
           );
         }
 

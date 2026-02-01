@@ -48,7 +48,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
   
      <td class="px-6 py-4 text-sm text-gray-700 border-b sm:border-0 flex justify-between sm:table-cell">
     <span class="font-medium sm:hidden">PIC</span>  
-    ${item.pic_name || ""}
+    ${item.packageman_warehouse || ""}
     </td>
   
     <td class="px-6 py-4 text-sm text-gray-700 flex justify-between sm:table-cell">
@@ -65,17 +65,23 @@ ${
     ? `    
     <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
    
+      ${
+        item.status_id === 3
+          ? `
       <button onclick="event.stopPropagation(); updatePackageStatus('${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         📦 Process Packing
       </button>
+    `
+          : ""
+      }
       
       ${
-        item.pic_name && item.pic_name !== "null"
+        item.status_id === 5
           ? `
       <button onclick="event.stopPropagation(); printPackingList('${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         🖨️ Print Packing List
       </button>
-       `
+    `
           : ""
       }
       ${
@@ -102,16 +108,8 @@ ${
 
 async function updatePackageStatus(package_id) {
   try {
-    // 1. Ambil data packageman untuk dropdown
-    const resPackageman = await fetch(
-      `${baseUrl}/list/packageman/${owner_id}`,
-      {
-        headers: { Authorization: `Bearer ${API_TOKEN}` },
-      },
-    );
-    const dataPackageman = await resPackageman.json();
-
-    // 2. Ambil data detail untuk mendapatkan list items original
+    // 1. Ambil data detail untuk mendapatkan list items original
+    // Kita tetap butuh detail ini untuk menyusun payload 'sales_package_detail'
     const resDetail = await fetch(
       `${baseUrl}/detail/sales_package_warehouse/${package_id}`,
       {
@@ -119,32 +117,35 @@ async function updatePackageStatus(package_id) {
       },
     );
     const resultDetail = await resDetail.json();
+
+    // Pastikan path detailData sesuai dengan response API kamu
     const detailData = resultDetail.detail;
 
-    // Mapping opsi untuk SweetAlert (menggunakan Nama sesuai JSON terbaru kamu)
-    const options = {};
-    dataPackageman.listData.forEach((pm) => {
-      options[pm.name] = `${pm.name} (${pm.role})`;
-    });
-
-    // 3. Tampilkan SweetAlert untuk pilih PIC
+    // 2. Tampilkan SweetAlert dengan input teks bebas untuk PIC
     const { value: selectedName } = await Swal.fire({
-      title: "Pilih PIC",
-      input: "select",
-      inputOptions: options,
-      inputPlaceholder: "Pilih karyawan",
+      title: "Input Nama PIC",
+      input: "text", // Diubah menjadi input text bebas
+      inputLabel: "Nama Packageman Warehouse",
+      inputPlaceholder: "Ketik nama pengemas (contoh: Ujang)",
       showCancelButton: true,
       confirmButtonText: "Update Status",
-      inputValidator: (value) => !value && "PIC wajib dipilih!",
+      inputValidator: (value) => {
+        if (!value) {
+          return "Nama PIC tidak boleh kosong!";
+        }
+      },
     });
 
+    // Jika user cancel atau tidak mengisi
     if (!selectedName) return;
 
-    // 4. Mapping items ke format sales_package_detail sesuai kebutuhan API Update
-    const salesPackageDetail = detailData.items.map((item) => ({
+    // 3. Mapping items ke format sales_package_detail sesuai JSON target
+    // Pastikan field names (product_id, qty, package_group, dll) sesuai dengan data dari API detail
+    const salesPackageDetail = (detailData.items || []).map((item) => ({
       product_id: parseInt(item.product_id),
       qty: parseInt(item.qty),
       package_group: item.package_group || "",
+      // Mapping nested item_detail jika ada
       item_detail: (item.item_detail || []).map((id) => ({
         item_id: parseInt(id.item_id),
         qty: parseInt(id.qty),
@@ -152,13 +153,13 @@ async function updatePackageStatus(package_id) {
       })),
     }));
 
-    // 5. Susun Payload
+    // 4. Susun Payload sesuai format yang kamu minta
     const payload = {
-      packageman_warehouse: selectedName, // "Ujang"
+      packageman_warehouse: selectedName,
       sales_package_detail: salesPackageDetail,
     };
 
-    // 6. Eksekusi Update
+    // 5. Eksekusi Update ke Endpoint
     const res = await fetch(
       `${baseUrl}/update/sales_package_warehouse/${package_id}`,
       {
@@ -174,8 +175,9 @@ async function updatePackageStatus(package_id) {
     const result = await res.json();
 
     if (res.ok) {
-      // Mengambil pesan dari result.data.message sesuai SS kamu
-      const successMsg = result.data?.message || "Data successfully updated";
+      // Menggunakan optional chaining untuk ambil message
+      const successMsg =
+        result.data?.message || result.message || "Data successfully updated";
 
       Swal.fire({
         icon: "success",
@@ -183,11 +185,13 @@ async function updatePackageStatus(package_id) {
         text: successMsg,
       });
 
+      // Refresh data jika fungsi tersedia
       if (typeof fetchAndUpdateData === "function") fetchAndUpdateData();
     } else {
       throw new Error(result.message || "Gagal memperbarui data.");
     }
   } catch (error) {
+    console.error("Update Error:", error);
     Swal.fire({
       icon: "error",
       title: "Gagal",
