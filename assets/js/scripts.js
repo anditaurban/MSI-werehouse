@@ -17,8 +17,8 @@ const userRole =
   user.role || (level === "Pusat" ? "superadmin" : level) || "guest";
 
 // const default_module = 'dashboard';
-const default_module = getDefaultModule(userRole);
-// const default_module = 'product_form';
+// const default_module = getDefaultModule(userRole);
+const default_module = "package";
 
 let currentScript = null;
 let formHtml = null;
