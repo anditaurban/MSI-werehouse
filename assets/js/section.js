@@ -250,66 +250,14 @@ function renderSidebar() {
 
   menuContainer.innerHTML = `
       <!-- DASHBOARD (DISABLED) -->
-      <div class="pointer-events-none opacity-60 text-gray-400">
-        ${createMenuItem("dashboard", allMenus.dashboard)}
-      </div>
+      
+        ${createMenuItem("package", allMenus.package)}
+        ${createMenuItem("shipment", allMenus.shipment)}
+        ${createMenuItem("product", allMenus.product)}
+        ${createMenuItem("outbound", allMenus.outbound)}
+      
 
-      <!-- PENJUALAN (DISABLED TOTAL) -->
-      <div class="flex flex-col space-y-2">
-          <div class="flex items-center gap-2 py-2 px-2 hover:bg-blue-200 rounded-lg cursor-pointer" onclick="toggleSubMenu('salesSubmenu')">
-            <span>💼</span>
-            <span class="menu-text flex justify-between items-center w-full">
-              Penjualan
-              <svg class="w-4 h-4 ml-auto transition-transform transform" id="salesSubmenuIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </span>
-          </div>
-          <div id="salesSubmenu" class="hidden ml-8 flex flex-col space-y-2">
-            ${createMenuItem("package", allMenus.package)}
-            ${createMenuItem("shipment", allMenus.shipment)}
-          </div>
-        </div>
-
-      <!-- PERSEDIAAN (AKTIF) -->
-      <div class="flex flex-col space-y-2">
-        <div class="flex items-center gap-2 py-2 px-2 hover:bg-blue-200 rounded-lg cursor-pointer"
-             onclick="toggleSubMenu('productSubmenu')">
-          <span>📦</span>
-          <span class="menu-text flex justify-between items-center w-full">
-            Persediaan
-            <svg class="w-4 h-4 ml-auto transition-transform transform"
-                 id="productSubmenuIcon"
-                 fill="none" stroke="currentColor"
-                 stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19 9l-7 7-7-7" />
-            </svg>
-          </span>
-        </div>
-
-        <div id="productSubmenu" class="hidden ml-8 flex flex-col space-y-2">
-          ${createMenuItem("product", allMenus.product)}
-          ${createMenuItem("inbound", allMenus.inbound)}
-          ${createMenuItem("outbound", allMenus.outbound)}
-          ${createMenuItem("mutasi", allMenus.mutasi)}
-          ${createMenuItem("retur", allMenus.retur)}
-
-          <!-- OPNAME (DISABLED) -->
-          <div class="pointer-events-none opacity-60 text-gray-400">
-            ${createMenuItem("opname", allMenus.opname)}
-          </div>
-        </div>
-      </div>
-      ${createMenuItem("contact", allMenus.contact)}
-      <!-- MENU LAIN (DISABLED) -->
-      <div class="pointer-events-none opacity-60 text-gray-400">
-        
-        ${createMenuItem("report", allMenus.report)}
-        ${createMenuItem("employee", allMenus.employee)}
-        ${createMenuItem("user", allMenus.user)}
-        ${createMenuItem("setting_unit", allMenus.setting)}
-      </div>
+      
     `;
   // Role selain superadmin
   allowed.forEach((key) => {

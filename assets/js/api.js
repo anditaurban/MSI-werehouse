@@ -88,7 +88,7 @@ const endpointList = [
   "client",
 ];
 
-const useOwnerIdTypes = ["contact"];
+const useOwnerIdTypes = ["contact", "product"];
 
 // generate state otomatis
 const state = endpointList.reduce((acc, type) => {
