@@ -71,10 +71,12 @@ window.rowTemplate = function (item, index, perPage = 10) {
     `
           : ""
       }
-      
+      ${item.status_i === 3 ? ` 
       <button onclick="event.stopPropagation(); printPackingList('${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         🖨️ Print Packing List
       </button>
+      ` : ""
+      }
 
       ${
         item.status_id === 5
