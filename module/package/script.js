@@ -60,10 +60,7 @@ window.rowTemplate = function (item, index, perPage = 10) {
       </span>      
     </td>
     
-${
-  ![2, 4].includes(item.status_id)
-    ? `    
-    <div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
+<div class="dropdown-menu hidden fixed w-48 bg-white border rounded shadow z-50 text-sm">
    
       ${
         item.status_id === 3
@@ -75,15 +72,10 @@ ${
           : ""
       }
       
-      ${
-        item.status_id === 5
-          ? `
       <button onclick="event.stopPropagation(); printPackingList('${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         🖨️ Print Packing List
       </button>
-    `
-          : ""
-      }
+
       ${
         item.status_id === 5
           ? `
@@ -94,15 +86,17 @@ ${
           : ""
       }
 
-       <button onclick="event.stopPropagation(); loadModuleContent('package_form', '${
-         item.package_id
-       }');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+      ${
+        ![2, 4].includes(item.status_id)
+          ? `
+       <button onclick="event.stopPropagation(); loadModuleContent('package_form', '${item.package_id}');" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
         🔄 Update Packing
        </button>
+       `
+          : ""
+      }
+      
       </div>
- `
-    : ""
-}
   </tr>`;
 };
 
